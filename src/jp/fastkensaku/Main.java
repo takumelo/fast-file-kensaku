@@ -7,11 +7,22 @@ import java.awt.event.*;
 public class Main {
 
     private JTabbedPane tab;
-    JPanel panel;
+    private JPanel panel;
+    private JFrame settingFrame;
+    private JFrame usageFrame;
+    private JFrame aboutFrame;
+
+    private DBHandler dbHandler;
 
     private JMenu createSettingMenu() {
         JMenu fileMenu = new JMenu("設定");
         JMenuItem newItem = new JMenuItem("ディレクトリ設定");
+        newItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createSettingFrame();
+            }
+        });
         fileMenu.add(newItem);
         return fileMenu;
     }
@@ -19,8 +30,20 @@ public class Main {
     private JMenu createHelpMenu(){
         JMenu fileMenu = new JMenu("ヘルプ");
         JMenuItem newItem = new JMenuItem("使い方");
+        newItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createUsageFrame();
+            }
+        });
         fileMenu.add(newItem);
         newItem = new JMenuItem("アプリについて");
+        newItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                createAboutFrame();
+            }
+        });
         fileMenu.add(newItem);
         return fileMenu;
     }
@@ -63,6 +86,48 @@ public class Main {
         return panel;
     }
 
+    private void createSettingFrame(){
+        if (settingFrame == null) {
+            settingFrame = new JFrame();
+            settingFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            settingFrame.setTitle("ディレクトリ設定");
+            settingFrame.setSize(400, 350);
+            settingFrame.setLocationByPlatform(true);
+            settingFrame.setVisible(true);
+        }else{
+            settingFrame.setVisible(true);
+        }
+    }
+
+    private void createUsageFrame(){
+        if (usageFrame == null) {
+            usageFrame = new JFrame();
+            usageFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            usageFrame.setTitle("使い方");
+            usageFrame.setSize(400, 350);
+            usageFrame.setLocationByPlatform(true);
+            usageFrame.setVisible(true);
+        }else{
+            usageFrame.setVisible(true);
+        }
+    }
+
+    private void createAboutFrame(){
+        if (aboutFrame == null) {
+            aboutFrame = new JFrame();
+            aboutFrame.setDefaultCloseOperation(WindowConstants.DISPOSE_ON_CLOSE);
+            aboutFrame.setTitle("アプリについて");
+            aboutFrame.setSize(400, 350);
+            aboutFrame.setLocationByPlatform(true);
+            aboutFrame.setVisible(true);
+        }else{
+            aboutFrame.setVisible(true);
+        }
+    }
+
+    private void prepareDB(){
+        dbHandler = new DBHandler();
+    }
 
     private void initGui() {
         JFrame frame1 = new JFrame();
@@ -80,6 +145,7 @@ public class Main {
             @Override
             public void run() {
                 Main main = new Main();
+                main.prepareDB();
                 main.initGui();
             }
         });
