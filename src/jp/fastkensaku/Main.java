@@ -1,8 +1,15 @@
 package jp.fastkensaku;
 
+import java.io.File;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.ArrayList;
+import javax.swing.JFileChooser;
+import javax.swing.filechooser.FileSystemView;
+import javax.swing.table.DefaultTableModel;
+
 
 public class Main {
 
@@ -11,6 +18,9 @@ public class Main {
     private JFrame settingFrame;
     private JFrame usageFrame;
     private JFrame aboutFrame;
+    // ディレクトリ設定用
+    private JTable tbl;
+    private DefaultTableModel tblModel;
 
     private DBHandler dbHandler;
 
@@ -86,6 +96,30 @@ public class Main {
         return panel;
     }
 
+    private void openFileChooser(){
+        JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
+
+        int returnValue = jfc.showOpenDialog(null);
+        // int returnValue = jfc.showSaveDialog(null);
+
+        String newPath;
+        if (returnValue == JFileChooser.APPROVE_OPTION) {
+            File selectedFile = jfc.getSelectedFile();
+            newPath = selectedFile.getAbsolutePath();
+            dbHandler.addNewDir(newPath);
+        }
+
+        Object data[][] = dbHandler.getAllDir();
+        String[] cols = {"ディレクトリ"};
+        tblModel = new DefaultTableModel(data, cols);
+        tbl.setModel(tblModel);
+        tblModel.fireTableDataChanged();
+    }
+
+    private void applySetting(Object[][] data){
+
+    }
+
     private void createSettingFrame(){
         if (settingFrame == null) {
             settingFrame = new JFrame();
@@ -93,6 +127,80 @@ public class Main {
             settingFrame.setTitle("ディレクトリ設定");
             settingFrame.setSize(400, 350);
             settingFrame.setLocationByPlatform(true);
+            settingFrame.setLayout(new GridBagLayout());
+
+            GridBagConstraints gbc = new GridBagConstraints();
+
+            // table作成
+            String[] cols = {"ディレクトリ"};
+            Object data[][] = dbHandler.getAllDir();
+            tblModel = new DefaultTableModel(data, cols);
+            tbl = new JTable(tblModel);
+            tbl.setModel(tblModel);
+            tblModel.fireTableDataChanged();
+
+            //tbl.getColumnModel().getColumn(0).setPreferredWidth(20);
+            //tbl.getColumnModel().getColumn(1).setPreferredWidth(2000);
+
+            // セル編集不可に
+            tbl.setDefaultEditor(Object.class, null);
+
+            JScrollPane sp = new JScrollPane(tbl);
+            //sp.setComponentOrientation(ComponentOrientation.RIGHT_TO_LEFT);
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            gbc.weightx = 1.0;
+            gbc.weighty = 9.0;
+            gbc.fill = GridBagConstraints.BOTH;
+            settingFrame.add(sp, gbc);
+
+            // add new dir
+            JPanel btnPanel = new JPanel();
+            JButton newBtn = new JButton("新規追加");
+            newBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    openFileChooser();
+                }
+            });
+            btnPanel.add(newBtn);
+
+            JButton deleteBtn = new JButton("一括削除");
+            newBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    // TODO: 全削除追加
+                }
+            });
+            btnPanel.add(deleteBtn);
+
+            JButton cancelBtn = new JButton("キャンセル");
+            cancelBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    System.out.println("とじる");
+                    settingFrame.setVisible(false);
+                }
+            });
+            btnPanel.add(cancelBtn);
+            JButton okBtn = new JButton("OK");
+            okBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    applySetting(data);
+                }
+            });
+            btnPanel.add(okBtn);
+
+
+            gbc.gridx = 0;
+            gbc.gridy = 1;
+            gbc.weightx = 1.0;
+            gbc.weighty = 1.0;
+            gbc.fill = GridBagConstraints.BOTH;
+            settingFrame.add(btnPanel, gbc);
+
+            //settingFrame.setContentPane(panel);
             settingFrame.setVisible(true);
         }else{
             settingFrame.setVisible(true);
