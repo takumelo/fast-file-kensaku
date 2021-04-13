@@ -98,7 +98,7 @@ public class Main {
 
     private void openFileChooser(){
         JFileChooser jfc = new JFileChooser(FileSystemView.getFileSystemView().getHomeDirectory());
-
+        jfc.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
         int returnValue = jfc.showOpenDialog(null);
         // int returnValue = jfc.showSaveDialog(null);
 
@@ -116,8 +116,10 @@ public class Main {
         tblModel.fireTableDataChanged();
     }
 
-    private void applySetting(Object[][] data){
-
+    private void deleteAllDirSetting(){
+        dbHandler.deleteAllDir();
+        tblModel.setRowCount(0);
+        tblModel.fireTableDataChanged();
     }
 
     private void createSettingFrame(){
@@ -139,6 +141,7 @@ public class Main {
             tbl.setModel(tblModel);
             tblModel.fireTableDataChanged();
 
+            // セルの幅を変更したい場合
             //tbl.getColumnModel().getColumn(0).setPreferredWidth(20);
             //tbl.getColumnModel().getColumn(1).setPreferredWidth(2000);
 
@@ -166,28 +169,19 @@ public class Main {
             btnPanel.add(newBtn);
 
             JButton deleteBtn = new JButton("一括削除");
-            newBtn.addActionListener(new ActionListener() {
+            deleteBtn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    // TODO: 全削除追加
+                    deleteAllDirSetting();
                 }
             });
             btnPanel.add(deleteBtn);
 
-            JButton cancelBtn = new JButton("キャンセル");
-            cancelBtn.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    System.out.println("とじる");
-                    settingFrame.setVisible(false);
-                }
-            });
-            btnPanel.add(cancelBtn);
-            JButton okBtn = new JButton("OK");
+            JButton okBtn = new JButton("設定を閉じる");
             okBtn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
-                    applySetting(data);
+                    settingFrame.setVisible(false);
                 }
             });
             btnPanel.add(okBtn);

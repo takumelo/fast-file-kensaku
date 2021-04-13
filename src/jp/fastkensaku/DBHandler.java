@@ -25,7 +25,6 @@ public class DBHandler {
             );
         """;
         String sql = String.format(tmpSql, tblName);
-        System.out.println(sql);
         try (Connection conn = DriverManager.getConnection(dbPath)) {
             if (conn != null) {
                 if(!existsDB){
@@ -42,7 +41,6 @@ public class DBHandler {
     public int addNewDir(String dirPath){
         String tmpSql = "INSERT INTO %s('dir') VALUES(?)";
         String sql = String.format(tmpSql, tblName);
-        System.out.println(sql);
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
@@ -77,5 +75,18 @@ public class DBHandler {
             data[i] = row.toArray(new String[row.size()]);
         }
         return data;
+    }
+    public int deleteAllDir(){
+        String tmpSql = "DELETE FROM %s";
+        String sql = String.format(tmpSql, tblName);
+
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
+        return 0;
     }
 }
