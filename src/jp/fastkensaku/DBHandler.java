@@ -76,6 +76,23 @@ public class DBHandler {
         }
         return data;
     }
+    public Object[] getAllDirForCmb(){
+        String tmpSql = "SELECT dir FROM %s";
+        String sql = String.format(tmpSql, tblName);
+
+        ArrayList<String> paths = new ArrayList<String>();
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             Statement stmt  = conn.createStatement();
+             ResultSet rs    = stmt.executeQuery(sql)){
+
+            while (rs.next()) {
+                paths.add(rs.getString("dir"));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+        return paths.toArray();
+    }
     public int deleteAllDir(){
         String tmpSql = "DELETE FROM %s";
         String sql = String.format(tmpSql, tblName);

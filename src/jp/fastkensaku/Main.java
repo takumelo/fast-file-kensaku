@@ -21,6 +21,8 @@ public class Main {
     // ディレクトリ設定用
     private JTable tbl;
     private DefaultTableModel tblModel;
+    JComboBox dirComboBox;
+    DefaultComboBoxModel cmbModel;
 
     private DBHandler dbHandler;
 
@@ -68,9 +70,9 @@ public class Main {
     private JTabbedPane createTab(){
         tab = new JTabbedPane();
         panel = new JPanel();
-        
+        JPanel childTextPanel = new JPanel();
+        JPanel childBtnPanel = new JPanel();
 
-        // TODO: gbc
         GridBagConstraints gbc = new GridBagConstraints();
         panel.setLayout(new GridBagLayout());
         gbc.gridx = 0;
@@ -78,10 +80,19 @@ public class Main {
         gbc.weightx = 1.0;
         gbc.weighty = 9.0;
         gbc.fill = GridBagConstraints.BOTH;
-        panel.add(createTextField(), gbc);
+        childTextPanel.add(createTextField());
+
+        dirComboBox = new JComboBox();
+        Object[] combodata = dbHandler.getAllDirForCmb();
+        cmbModel = new DefaultComboBoxModel(combodata);
+        dirComboBox.setModel(cmbModel);
+        childTextPanel.add(dirComboBox);
+
+        panel.add(childTextPanel, gbc);
         gbc.gridy = 1;
         gbc.weighty = 1.0;
-        panel.add(createSearchButton(), gbc);
+        childBtnPanel.add(createSearchButton());
+        panel.add(childBtnPanel, gbc);
         tab.add("検索", panel);
         return tab;
     }
@@ -126,12 +137,17 @@ public class Main {
         tblModel = new DefaultTableModel(data, cols);
         tbl.setModel(tblModel);
         tblModel.fireTableDataChanged();
+
+        Object[] combodata = dbHandler.getAllDirForCmb();
+        cmbModel = new DefaultComboBoxModel(combodata);
+        dirComboBox.setModel(cmbModel);
     }
 
     private void deleteAllDirSetting(){
         dbHandler.deleteAllDir();
         tblModel.setRowCount(0);
         tblModel.fireTableDataChanged();
+        dirComboBox.removeAllItems();
     }
 
     private void createSettingFrame(){
