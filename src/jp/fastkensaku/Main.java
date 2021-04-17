@@ -68,8 +68,20 @@ public class Main {
     private JTabbedPane createTab(){
         tab = new JTabbedPane();
         panel = new JPanel();
-        panel.add(createTextField());
-        panel.add(createSearchButton());
+        
+
+        // TODO: gbc
+        GridBagConstraints gbc = new GridBagConstraints();
+        panel.setLayout(new GridBagLayout());
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 9.0;
+        gbc.fill = GridBagConstraints.BOTH;
+        panel.add(createTextField(), gbc);
+        gbc.gridy = 1;
+        gbc.weighty = 1.0;
+        panel.add(createSearchButton(), gbc);
         tab.add("検索", panel);
         return tab;
     }
