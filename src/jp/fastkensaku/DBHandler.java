@@ -11,7 +11,9 @@ import java.sql.Statement;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDateTime;
 
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.stream.Stream;
 
@@ -95,7 +97,40 @@ public class DBHandler {
         }
         return paths.toArray();
     }
+    private int deleteAllDirTbl(){
+        String tmpSql = "SELECT dir FROM %s";
+        String sql = String.format(tmpSql, tblName);
+
+        ArrayList<String> paths = new ArrayList<String>();
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             Statement stmt  = conn.createStatement();
+             ResultSet rs    = stmt.executeQuery(sql)){
+
+            while (rs.next()) {
+                paths.add(rs.getString("dir"));
+            }
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        }
+
+        String tmpDpSql = """
+            DROP TABLE IF EXISTS "%s";
+        """;
+        for(String p: paths){
+            String dpSql = String.format(tmpDpSql, p);
+            try(Connection conn = DriverManager.getConnection(dbPath)){
+                Statement stmt  = conn.createStatement();
+                stmt.executeQuery(dpSql);
+            }catch (SQLException e){
+                System.out.println(e.getMessage());
+                return -1;
+            }
+        }
+
+        return 0;
+    }
     public int deleteAllDir(){
+        deleteAllDirTbl();
         String tmpSql = "DELETE FROM %s";
         String sql = String.format(tmpSql, tblName);
 
@@ -126,15 +161,16 @@ public class DBHandler {
         }
         return 0;
     }
-    private int insertFiles(String tblName, Path path){
+    private int insertFiles(String tblName, Path path, int updateTime){
         String tmpSql = """
-                INSERT INTO "%s"('dir') VALUES(?)
+                INSERT INTO "%s"('dir', 'updated') VALUES(?, ?)
                 """;
         String sql = String.format(tmpSql, tblName);
 
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, path.toString());
+            pstmt.setInt(2, updateTime);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());
@@ -143,9 +179,13 @@ public class DBHandler {
         return 0;
     }
     public int insertFilesRecur(String path){
+        LocalDateTime now = LocalDateTime.now();
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+        String formatDateTime = now.format(formatter);
+        int intFormatDataTime = Integer.parseInt(formatDateTime);
         try(Stream<Path> stream = Files.walk(Paths.get(path))){
             Stream<Path> ps = stream.filter(Files::isRegularFile);
-            ps.forEach(e -> insertFiles(path, e));
+            ps.forEach(e -> insertFiles(path, e, intFormatDataTime));
         }catch(IOException e) {
             e.printStackTrace();
         }
