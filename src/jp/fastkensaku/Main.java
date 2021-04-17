@@ -130,6 +130,8 @@ public class Main {
             File selectedFile = jfc.getSelectedFile();
             newPath = selectedFile.getAbsolutePath();
             dbHandler.addNewDir(newPath);
+            dbHandler.createDirTbl(newPath);
+            dbHandler.insertFilesRecur(newPath);
         }
 
         Object data[][] = dbHandler.getAllDir();

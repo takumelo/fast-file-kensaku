@@ -1,5 +1,6 @@
 package jp.fastkensaku;
 
+import java.io.IOException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -12,6 +13,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 import java.util.ArrayList;
+import java.util.stream.Stream;
 
 public class DBHandler {
     private static String dbPath = "jdbc:sqlite:fastkensaku.db";
@@ -103,6 +105,49 @@ public class DBHandler {
         } catch (SQLException e) {
             System.out.println(e.getMessage());
             return -1;
+        }
+        return 0;
+    }
+    public int createDirTbl(String dir){
+        String tmpSql = """
+            CREATE TABLE IF NOT EXISTS "%s"(
+                'dir' text PRIMARY KEY,
+                'hash' text,
+                'updated' integer
+            );
+        """;
+        String sql = String.format(tmpSql, dir);
+        try (Connection conn = DriverManager.getConnection(dbPath)) {
+            PreparedStatement pstmt = conn.prepareStatement(sql);
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
+        return 0;
+    }
+    private int insertFiles(String tblName, Path path){
+        String tmpSql = """
+                INSERT INTO "%s"('dir') VALUES(?)
+                """;
+        String sql = String.format(tmpSql, tblName);
+
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, path.toString());
+            pstmt.executeUpdate();
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
+        return 0;
+    }
+    public int insertFilesRecur(String path){
+        try(Stream<Path> stream = Files.walk(Paths.get(path))){
+            Stream<Path> ps = stream.filter(Files::isRegularFile);
+            ps.forEach(e -> insertFiles(path, e));
+        }catch(IOException e) {
+            e.printStackTrace();
         }
         return 0;
     }
