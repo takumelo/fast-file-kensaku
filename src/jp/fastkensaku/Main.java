@@ -155,8 +155,7 @@ public class Main {
     }
 
     /**
-     * ディレクトリ選択画面を開き、
-     * 表とDBへ更新
+     * ディレクトリ選択画面を開き、JTableに登録
      *
      * @return なし
      */
@@ -170,20 +169,12 @@ public class Main {
         if (returnValue == JFileChooser.APPROVE_OPTION) {
             File selectedFile = jfc.getSelectedFile();
             newPath = selectedFile.getAbsolutePath();
-            dbHandler.addNewDir(newPath);
-            dbHandler.createDirTbl(newPath);
-            dbHandler.insertFilesRecur(newPath);
+            String[] cols = {"ディレクトリ"};
+            Object[] row = {newPath};
+            tblModel.addRow(row);
+            tbl.setModel(tblModel);
+            tblModel.fireTableDataChanged();
         }
-
-        Object data[][] = dbHandler.getAllDir();
-        String[] cols = {"ディレクトリ"};
-        tblModel = new DefaultTableModel(data, cols);
-        tbl.setModel(tblModel);
-        tblModel.fireTableDataChanged();
-
-        Object[] combodata = dbHandler.getAllDirForCmb();
-        cmbModel = new DefaultComboBoxModel(combodata);
-        dirComboBox.setModel(cmbModel);
     }
 
     /**
@@ -191,10 +182,27 @@ public class Main {
      *
      */
     private void deleteAllDirSetting(){
-        dbHandler.deleteAllDir();
         tblModel.setRowCount(0);
         tblModel.fireTableDataChanged();
-        dirComboBox.removeAllItems();
+    }
+
+    /**
+     * テーブルモデルにあるディレクトリをDBに登録
+     *
+     */
+    private void applySetting(){
+        dbHandler.deleteAllDir();
+        int rowCnt = tblModel.getRowCount();
+        for(int cnt = 0; cnt < rowCnt; cnt++){
+            Object data = tblModel.getValueAt(cnt, 0);
+            String newPath = data.toString();
+            dbHandler.addNewDir(newPath);
+            dbHandler.createDirTbl(newPath);
+            dbHandler.insertFilesRecur(newPath);
+        }
+        Object[] combodata = dbHandler.getAllDirForCmb();
+        cmbModel = new DefaultComboBoxModel(combodata);
+        dirComboBox.setModel(cmbModel);
     }
 
     /**
@@ -217,7 +225,7 @@ public class Main {
             Object data[][] = dbHandler.getAllDir();
             tblModel = new DefaultTableModel(data, cols);
             tbl = new JTable(tblModel);
-            tbl.setModel(tblModel);
+            //tbl.setModel(tblModel);
             tblModel.fireTableDataChanged();
 
             // セルの幅を変更したい場合
@@ -256,14 +264,23 @@ public class Main {
             });
             btnPanel.add(deleteBtn);
 
-            JButton okBtn = new JButton("設定を閉じる");
-            okBtn.addActionListener(new ActionListener() {
+            JButton cancelBtn = new JButton("キャンセル");
+            cancelBtn.addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     settingFrame.setVisible(false);
                 }
             });
-            btnPanel.add(okBtn);
+            btnPanel.add(cancelBtn);
+            JButton applyBtn = new JButton("設定反映");
+            applyBtn.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    applySetting();
+                    settingFrame.setVisible(false);
+                }
+            });
+            btnPanel.add(applyBtn);
 
 
             gbc.gridx = 0;
@@ -276,6 +293,14 @@ public class Main {
             //settingFrame.setContentPane(panel);
             settingFrame.setVisible(true);
         }else{
+            // table作成
+            tblModel.setRowCount(0);
+            Object data[][] = dbHandler.getAllDir();
+            for (int i = 0; i < data.length; i++) {
+                tblModel.addRow(data[i]);
+            }
+            tblModel.fireTableDataChanged();
+
             settingFrame.setVisible(true);
         }
     }
