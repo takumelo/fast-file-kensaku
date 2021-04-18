@@ -20,6 +20,10 @@ import java.util.stream.Stream;
 public class DBHandler {
     private static String dbPath = "jdbc:sqlite:fastkensaku.db";
     private static String tblName = "dirSetting";
+
+    /**
+     * なければディレクトリ設定テーブルを作成、DB自体も作成
+     */
     public DBHandler(){
         Path filePath = Paths.get("fastkensaku.db");
         boolean existsDB = Files.exists(filePath);
@@ -42,6 +46,12 @@ public class DBHandler {
             System.out.println(e.getMessage());
         }
     }
+    /**
+     * ディレクトリ設定テーブルにディレクトリを追加する
+     *
+     * @param dirPath ディレクトリパス名
+     * @return 成功なら0
+     */
     public int addNewDir(String dirPath){
         String tmpSql = "INSERT INTO %s('dir') VALUES(?)";
         String sql = String.format(tmpSql, tblName);
@@ -56,6 +66,11 @@ public class DBHandler {
         }
         return 0;
     }
+    /**
+     * ディレクトリ設定テーブルにから全件取得
+     *
+     * @return ディレクトリ設定テーブルの全件データの2次元配列
+     */
     public Object[][] getAllDir(){
         String tmpSql = "SELECT dir FROM %s";
         String sql = String.format(tmpSql, tblName);
@@ -80,6 +95,11 @@ public class DBHandler {
         }
         return data;
     }
+    /**
+     * ディレクトリ設定テーブルからコンボボックス用に値を取得
+     *
+     * @return ディレクトリ値の配列データ
+     */
     public Object[] getAllDirForCmb(){
         String tmpSql = "SELECT dir FROM %s";
         String sql = String.format(tmpSql, tblName);
@@ -97,6 +117,11 @@ public class DBHandler {
         }
         return paths.toArray();
     }
+    /**
+     * ディレクトリ設定テーブルのデータから各ディレクトリテーブルを全件削除
+     *
+     * @return 成功なら0
+     */
     private int deleteAllDirTbl(){
         String tmpSql = "SELECT dir FROM %s";
         String sql = String.format(tmpSql, tblName);
@@ -129,6 +154,11 @@ public class DBHandler {
 
         return 0;
     }
+    /**
+     * ディレクトリ設定テーブルのデータを全件削除
+     *
+     * @return 成功なら0
+     */
     public int deleteAllDir(){
         deleteAllDirTbl();
         String tmpSql = "DELETE FROM %s";
@@ -143,6 +173,11 @@ public class DBHandler {
         }
         return 0;
     }
+    /**
+     * ディレクトリテーブルを作成
+     *
+     * @return 成功なら0
+     */
     public int createDirTbl(String dir){
         String tmpSql = """
             CREATE TABLE IF NOT EXISTS "%s"(
@@ -161,6 +196,14 @@ public class DBHandler {
         }
         return 0;
     }
+    /**
+     * ディレクトリ設定テーブルにディレクトリを追加する
+     *
+     * @param tblName テーブル名
+     * @param path 追加するディレクトリ名
+     * @param updateTime 更新時間
+     * @return 成功なら0
+     */
     private int insertFiles(String tblName, Path path, int updateTime){
         String tmpSql = """
                 INSERT INTO "%s"('dir', 'updated') VALUES(?, ?)
@@ -178,6 +221,12 @@ public class DBHandler {
         }
         return 0;
     }
+    /**
+     * ディレクトリテーブルに特定ディレクトリ直下のファイルをすべて追加
+     *
+     * @param path 追加するディレクトリ名
+     * @return 成功なら0
+     */
     public int insertFilesRecur(String path){
         LocalDateTime now = LocalDateTime.now();
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
