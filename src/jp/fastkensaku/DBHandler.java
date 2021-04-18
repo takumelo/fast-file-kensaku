@@ -183,7 +183,9 @@ public class DBHandler {
             CREATE TABLE IF NOT EXISTS "%s"(
                 'dir' text PRIMARY KEY,
                 'hash' text,
-                'updated' integer
+                'updated' integer,
+                'lucenized' integer
+                check(lucenized = 0 or lucenized = 1)
             );
         """;
         String sql = String.format(tmpSql, dir);
