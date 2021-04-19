@@ -242,4 +242,21 @@ public class DBHandler {
         }
         return 0;
     }
+
+    /**
+     * ディレクトリテーブルに特定ディレクトリ直下のファイルの総数の取得
+     *
+     * @param path 追加するディレクトリ名
+     * @return ファイル総数
+     */
+    public long getFilesCntRecur(String path){
+        long cnt = 0;
+        try(Stream<Path> stream = Files.walk(Paths.get(path))){
+            Stream<Path> ps = stream.filter(Files::isRegularFile);
+            cnt = ps.count();
+        }catch(IOException e) {
+            e.printStackTrace();
+        }
+        return cnt;
+    }
 }

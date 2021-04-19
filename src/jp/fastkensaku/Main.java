@@ -113,6 +113,9 @@ public class Main {
         gbc.weighty = 1.0;
         childBtnPanel.add(createSearchButton());
         panel.add(childBtnPanel, gbc);
+
+        // TODO: プログレスバーを下部に設置
+
         tab.add("検索", panel);
         return tab;
     }
@@ -198,6 +201,8 @@ public class Main {
             String newPath = data.toString();
             dbHandler.addNewDir(newPath);
             dbHandler.createDirTbl(newPath);
+            System.out.println(dbHandler.getFilesCntRecur(newPath));
+            //TODO: 時間がかかるので、swingworkerとプログレスバーでごまかす
             dbHandler.insertFilesRecur(newPath);
         }
         Object[] combodata = dbHandler.getAllDirForCmb();
