@@ -352,16 +352,28 @@ public class Main {
         dbHandler = new DBHandler();
     }
 
+    private JPanel createProgBar(){
+        JProgressBar pb = new JProgressBar();
+        pb.setIndeterminate(false);
+        int max = 1000;
+        pb.setMaximum(max);
+        JPanel p = new JPanel();
+        p.add(pb);
+        return p;
+    }
+
     /**
      * アプリ立ち上がり画面の表示
      *
      */
     private void initGui() {
         JFrame frame1 = new JFrame();
+        // TODO: gridbaglayoutを使って、タブの下にいい感じにプログレスバーをやる
         frame1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame1.setTitle("高速ファイル検索君");
         frame1.setJMenuBar(createMenuBar());
         frame1.add(createTab());
+        frame1.add(createProgBar());
         frame1.setSize(400, 350);
         frame1.setLocationByPlatform(true);
         frame1.setVisible(true);
