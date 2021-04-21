@@ -2,6 +2,9 @@ package jp.fastkensaku;
 
 import java.io.File;
 
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
@@ -190,6 +193,38 @@ public class Main {
     }
 
     /**
+     * applySetting用のSW
+     *
+     * 参考: https://stackoverflow.com/questions/20260372/swingworker-progressbar
+     */
+    static class Task_IntegerUpdate extends SwingWorker<Integer, Integer>{
+        JProgressBar jpb;
+        int max;
+        JLabel label;
+        public Task_IntegerUpdate(JProgressBar jpb, int max, JLabel label) {
+            this.jpb = jpb;
+            this.max = max;
+            this.label = label;
+        }
+        @Override
+        protected Integer doInBackground() throws Exception {
+            return null;
+        }
+        @Override
+        protected void process(List<Integer> chunks){
+
+        }
+        @Override
+        protected void done() {
+            try {
+
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    /**
      * テーブルモデルにあるディレクトリをDBに登録
      *
      */
@@ -202,7 +237,6 @@ public class Main {
             dbHandler.addNewDir(newPath);
             dbHandler.createDirTbl(newPath);
             System.out.println(dbHandler.getFilesCntRecur(newPath));
-            //TODO: 時間がかかるので、swingworkerとプログレスバーでごまかす
             dbHandler.insertFilesRecur(newPath);
         }
         Object[] combodata = dbHandler.getAllDirForCmb();
@@ -368,12 +402,20 @@ public class Main {
      */
     private void initGui() {
         JFrame frame1 = new JFrame();
-        // TODO: gridbaglayoutを使って、タブの下にいい感じにプログレスバーをやる
+        frame1.setLayout(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 9.0;
+        gbc.fill = GridBagConstraints.BOTH;
         frame1.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame1.setTitle("高速ファイル検索君");
         frame1.setJMenuBar(createMenuBar());
-        frame1.add(createTab());
-        frame1.add(createProgBar());
+        frame1.add(createTab(), gbc);
+        gbc.gridy = 1;
+        gbc.weighty = 1.0;
+        frame1.add(createProgBar(), gbc);
         frame1.setSize(400, 350);
         frame1.setLocationByPlatform(true);
         frame1.setVisible(true);
