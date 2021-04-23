@@ -1,5 +1,8 @@
 package jp.fastkensaku;
 
+import java.awt.desktop.SystemEventListener;
+import java.beans.PropertyChangeEvent;
+import java.beans.PropertyChangeListener;
 import java.io.File;
 
 import java.io.IOException;
@@ -204,18 +207,15 @@ public class Main {
      * applySetting用のSW
      *
      * 参考: https://stackoverflow.com/questions/20260372/swingworker-progressbar
+     *      https://docs.oracle.com/javase/6/docs/api/javax/swing/SwingWorker.html
      */
     static class InsertRecurWorker extends SwingWorker<Integer, Integer>{
-        private JProgressBar jpb;
         private String path;
         private DBHandler dbHandler;
         private long maxFileNum;
-        private JPanel progPanel;
-        public InsertRecurWorker(DBHandler dbHandler, String path, JProgressBar jpb, JPanel progPanel) {
+        public InsertRecurWorker(DBHandler dbHandler, String path) {
             this.dbHandler = dbHandler;
             this.path = path;
-            this.jpb = jpb;
-            this.progPanel = progPanel;
         }
         @Override
         protected Integer doInBackground() throws Exception {
@@ -231,20 +231,13 @@ public class Main {
                 for(Object p: psArray){
                     dbHandler.insertFiles(path, (Path)p, intFormatDataTime);
                     cnt += 1;
-                    int percentage = (int)((cnt / maxFileNum) * 100);
-                    jpb.setValue(percentage);
-
+                    int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
+                    setProgress(percentage);
                 }
             }catch(IOException e) {
                 e.printStackTrace();
             }
             return 0;
-        }
-        @Override
-        protected void done() {
-            progPanel.remove(jpb);
-            progPanel.revalidate();
-            progPanel.repaint();
         }
     }
 
@@ -261,7 +254,22 @@ public class Main {
             dbHandler.addNewDir(newPath);
             dbHandler.createDirTbl(newPath);
             JProgressBar pb = createProgBar();
-            InsertRecurWorker insertRecurWorker = new InsertRecurWorker(dbHandler, newPath, pb, progPanel);
+            InsertRecurWorker insertRecurWorker = new InsertRecurWorker(dbHandler, newPath);
+            insertRecurWorker.addPropertyChangeListener(
+                    new PropertyChangeListener() {
+                        public  void propertyChange(PropertyChangeEvent evt) {
+                            if ("progress".equals(evt.getPropertyName())) {
+                                // 進んでるとき
+                                pb.setValue((Integer)evt.getNewValue());
+                            }else if("state".equals(evt.getPropertyName())
+                                    && (SwingWorker.StateValue.DONE.equals(evt.getNewValue()))){
+                                // 終了時
+                                progPanel.remove(pb);
+                                progPanel.revalidate();
+                                progPanel.repaint();
+                            }
+                        }
+                    });
             progPanel.add(pb);
             insertRecurWorker.execute();
         }
@@ -413,9 +421,8 @@ public class Main {
     }
 
     private JProgressBar createProgBar(){
-        JProgressBar pb = new JProgressBar();
-        pb.setIndeterminate(false);
-        pb.setMaximum(100);
+        JProgressBar pb = new JProgressBar(0, 100);
+        //pb.setIndeterminate(false);
         return pb;
     }
 
