@@ -17,6 +17,8 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.stream.Stream;
 
+import java.util.function.Function;
+
 public class DBHandler {
     private static String dbPath = "jdbc:sqlite:fastkensaku.db";
     private static String tblName = "dirSetting";
@@ -206,7 +208,7 @@ public class DBHandler {
      * @param updateTime 更新時間
      * @return 成功なら0
      */
-    private int insertFiles(String tblName, Path path, int updateTime){
+    public int insertFiles(String tblName, Path path, int updateTime){
         String tmpSql = """
                 INSERT INTO "%s"('dir', 'updated') VALUES(?, ?)
                 """;

@@ -2,6 +2,12 @@ package jp.fastkensaku;
 
 import java.io.File;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
@@ -9,6 +15,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.ArrayList;
+import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
@@ -21,6 +28,7 @@ public class Main {
     private JFrame settingFrame;
     private JFrame usageFrame;
     private JFrame aboutFrame;
+    private JPanel progPanel;
     // ディレクトリ設定用
     private JTable tbl;
     private DefaultTableModel tblModel;
@@ -197,30 +205,46 @@ public class Main {
      *
      * 参考: https://stackoverflow.com/questions/20260372/swingworker-progressbar
      */
-    static class Task_IntegerUpdate extends SwingWorker<Integer, Integer>{
-        JProgressBar jpb;
-        int max;
-        JLabel label;
-        public Task_IntegerUpdate(JProgressBar jpb, int max, JLabel label) {
+    static class InsertRecurWorker extends SwingWorker<Integer, Integer>{
+        private JProgressBar jpb;
+        private String path;
+        private DBHandler dbHandler;
+        private long maxFileNum;
+        private JPanel progPanel;
+        public InsertRecurWorker(DBHandler dbHandler, String path, JProgressBar jpb, JPanel progPanel) {
+            this.dbHandler = dbHandler;
+            this.path = path;
             this.jpb = jpb;
-            this.max = max;
-            this.label = label;
+            this.progPanel = progPanel;
         }
         @Override
         protected Integer doInBackground() throws Exception {
-            return null;
-        }
-        @Override
-        protected void process(List<Integer> chunks){
+            this.maxFileNum = dbHandler.getFilesCntRecur(this.path);
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            String formatDateTime = now.format(formatter);
+            int intFormatDataTime = Integer.parseInt(formatDateTime);
+            long cnt = 0;
+            try(Stream<Path> stream = Files.walk(Paths.get(path))){
+                Stream<Path> ps = stream.filter(Files::isRegularFile);
+                Object[] psArray = ps.toArray();
+                for(Object p: psArray){
+                    dbHandler.insertFiles(path, (Path)p, intFormatDataTime);
+                    cnt += 1;
+                    int percentage = (int)((cnt / maxFileNum) * 100);
+                    jpb.setValue(percentage);
 
+                }
+            }catch(IOException e) {
+                e.printStackTrace();
+            }
+            return 0;
         }
         @Override
         protected void done() {
-            try {
-
-            } catch (ExecutionException | InterruptedException e) {
-                e.printStackTrace();
-            }
+            progPanel.remove(jpb);
+            progPanel.revalidate();
+            progPanel.repaint();
         }
     }
 
@@ -236,8 +260,10 @@ public class Main {
             String newPath = data.toString();
             dbHandler.addNewDir(newPath);
             dbHandler.createDirTbl(newPath);
-            System.out.println(dbHandler.getFilesCntRecur(newPath));
-            dbHandler.insertFilesRecur(newPath);
+            JProgressBar pb = createProgBar();
+            InsertRecurWorker insertRecurWorker = new InsertRecurWorker(dbHandler, newPath, pb, progPanel);
+            progPanel.add(pb);
+            insertRecurWorker.execute();
         }
         Object[] combodata = dbHandler.getAllDirForCmb();
         cmbModel = new DefaultComboBoxModel(combodata);
@@ -386,14 +412,11 @@ public class Main {
         dbHandler = new DBHandler();
     }
 
-    private JPanel createProgBar(){
+    private JProgressBar createProgBar(){
         JProgressBar pb = new JProgressBar();
         pb.setIndeterminate(false);
-        int max = 1000;
-        pb.setMaximum(max);
-        JPanel p = new JPanel();
-        p.add(pb);
-        return p;
+        pb.setMaximum(100);
+        return pb;
     }
 
     /**
@@ -415,7 +438,8 @@ public class Main {
         frame1.add(createTab(), gbc);
         gbc.gridy = 1;
         gbc.weighty = 1.0;
-        frame1.add(createProgBar(), gbc);
+        progPanel = new JPanel();
+        frame1.add(progPanel, gbc);
         frame1.setSize(400, 350);
         frame1.setLocationByPlatform(true);
         frame1.setVisible(true);
