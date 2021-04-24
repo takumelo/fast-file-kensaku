@@ -254,12 +254,15 @@ public class Main {
             dbHandler.addNewDir(newPath);
             dbHandler.createDirTbl(newPath);
             JProgressBar pb = createProgBar();
+            pb.setStringPainted(true);
+            pb.setString("追加準備中: " + newPath);
             InsertRecurWorker insertRecurWorker = new InsertRecurWorker(dbHandler, newPath);
             insertRecurWorker.addPropertyChangeListener(
                     new PropertyChangeListener() {
                         public  void propertyChange(PropertyChangeEvent evt) {
                             if ("progress".equals(evt.getPropertyName())) {
                                 // 進んでるとき
+                                pb.setString("追加中: " + newPath);
                                 pb.setValue((Integer)evt.getNewValue());
                             }else if("state".equals(evt.getPropertyName())
                                     && (SwingWorker.StateValue.DONE.equals(evt.getNewValue()))){
@@ -267,15 +270,22 @@ public class Main {
                                 progPanel.remove(pb);
                                 progPanel.revalidate();
                                 progPanel.repaint();
+                                Object[] combodata = dbHandler.getAllDirForCmb();
+                                cmbModel = new DefaultComboBoxModel(combodata);
+                                dirComboBox.setModel(cmbModel);
                             }
                         }
                     });
             progPanel.add(pb);
+            progPanel.revalidate();
+            progPanel.repaint();
             insertRecurWorker.execute();
         }
-        Object[] combodata = dbHandler.getAllDirForCmb();
-        cmbModel = new DefaultComboBoxModel(combodata);
-        dirComboBox.setModel(cmbModel);
+        if(rowCnt == 0){
+            Object[] combodata = dbHandler.getAllDirForCmb();
+            cmbModel = new DefaultComboBoxModel(combodata);
+            dirComboBox.setModel(cmbModel);
+        }
     }
 
     /**
@@ -446,8 +456,10 @@ public class Main {
         gbc.gridy = 1;
         gbc.weighty = 1.0;
         progPanel = new JPanel();
+        GridLayout gl = new GridLayout(0,1);
+        progPanel.setLayout(gl);
         frame1.add(progPanel, gbc);
-        frame1.setSize(400, 350);
+        frame1.setSize(600, 400);
         frame1.setLocationByPlatform(true);
         frame1.setVisible(true);
     }
