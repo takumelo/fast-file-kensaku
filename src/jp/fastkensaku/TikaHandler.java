@@ -16,12 +16,12 @@ public class TikaHandler {
 
     private String content;
     private String meta;
-    private String format;
+    private String extention;
 
     public TikaHandler(){
         content = null;
         meta = null;
-        format = null;
+        extention = null;
     }
 
     public int parse(File file) throws TikaException, IOException, SAXException {
@@ -33,16 +33,29 @@ public class TikaHandler {
         ParseContext context = new ParseContext();
 
         parser.parse(inputstream, handler, metadata, context);
-        System.out.println(handler.toString());
+        this.content = handler.toString();
 
-        System.out.println(context);
 
         //getting the list of all meta data elements
         String[] metadataNames = metadata.names();
 
-        for(String name : metadataNames) {
-            System.out.println(name + ": " + metadata.get(name));
-        }
+        this.meta = String.join(",", metadataNames);
+
+        this.extention = getFileExtension(file);
+
         return 0;
+    }
+
+    public String getContent(){
+        return this.content;
+    }
+
+    private static String getFileExtension(File file) {
+        String name = file.getName();
+        int lastIndexOf = name.lastIndexOf(".");
+        if (lastIndexOf == -1) {
+            return "";
+        }
+        return name.substring(lastIndexOf);
     }
 }

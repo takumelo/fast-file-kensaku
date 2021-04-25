@@ -17,7 +17,6 @@ import java.util.concurrent.ExecutionException;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
 import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
@@ -128,8 +127,6 @@ public class Main {
         childBtnPanel.add(createSearchButton());
         panel.add(childBtnPanel, gbc);
 
-        // TODO: プログレスバーを下部に設置
-
         tab.add("検索", panel);
         return tab;
     }
@@ -230,6 +227,11 @@ public class Main {
                 Object[] psArray = ps.toArray();
                 for(Object p: psArray){
                     dbHandler.insertFiles(path, (Path)p, intFormatDataTime);
+                    TikaHandler tikaHandler = new TikaHandler();
+                    Path pp = (Path)p;
+                    File f = pp.toFile();
+                    tikaHandler.parse(f);
+                    String s = tikaHandler.getContent();
                     cnt += 1;
                     int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
                     setProgress(percentage);
