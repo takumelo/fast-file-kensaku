@@ -231,7 +231,8 @@ public class Main {
                     Path pp = (Path)p;
                     File f = pp.toFile();
                     tikaHandler.parse(f);
-                    String s = tikaHandler.getContent();
+                    String s = tikaHandler.getExtention();
+                    System.out.println(s);
                     cnt += 1;
                     int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
                     setProgress(percentage);

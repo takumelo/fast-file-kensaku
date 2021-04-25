@@ -50,12 +50,20 @@ public class TikaHandler {
         return this.content;
     }
 
+    public String getMeta(){
+        return this.meta;
+    }
+
+    public String getExtention(){
+        return this.extention;
+    }
+
     private static String getFileExtension(File file) {
         String name = file.getName();
         int lastIndexOf = name.lastIndexOf(".");
         if (lastIndexOf == -1) {
             return "";
         }
-        return name.substring(lastIndexOf);
+        return name.substring(lastIndexOf + 1);
     }
 }
