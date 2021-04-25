@@ -17,6 +17,7 @@ public class TikaHandler {
     private String content;
     private String meta;
     private String extention;
+    private String fileName;
 
     public TikaHandler(){
         content = null;
@@ -25,6 +26,7 @@ public class TikaHandler {
     }
 
     public int parse(File file) throws TikaException, IOException, SAXException {
+        this.fileName = file.getName();
         //Parser method parameters
         Parser parser = new AutoDetectParser();
         BodyContentHandler handler = new BodyContentHandler();
@@ -56,6 +58,10 @@ public class TikaHandler {
 
     public String getExtention(){
         return this.extention;
+    }
+
+    public String getFileName(){
+        return this.fileName;
     }
 
     private static String getFileExtension(File file) {

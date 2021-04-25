@@ -1,5 +1,7 @@
 package jp.fastkensaku;
 
+import org.apache.lucene.queryparser.classic.ParseException;
+
 import java.awt.desktop.SystemEventListener;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -38,6 +40,8 @@ public class Main {
     DefaultComboBoxModel cmbModel;
 
     private DBHandler dbHandler;
+
+    private JTextField searchBox;
 
     /**
      * 設定のメニュー作成
@@ -137,8 +141,8 @@ public class Main {
      * @return テキストフィールド
      */
     private JTextField createTextField(){
-        JTextField field = new JTextField(10);
-        return field;
+        searchBox = new JTextField(10);
+        return searchBox;
     }
 
     /**
@@ -150,6 +154,17 @@ public class Main {
         JButton button = new JButton("検索");
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
+
+                LuceneHandler luceneHandler = new LuceneHandler();
+                String searchTxt = searchBox.getText();
+                try {
+                    luceneHandler.search(searchTxt);
+                } catch (IOException ioException) {
+                    ioException.printStackTrace();
+                } catch (ParseException parseException) {
+                    parseException.printStackTrace();
+                }
+
                 tab.add("結果", createResultPanel());
                 int ind = tab.getTabCount() - 1;
                 tab.setTabComponentAt(ind, new ButtonTabComponent(tab));
@@ -231,6 +246,14 @@ public class Main {
                     Path pp = (Path)p;
                     File f = pp.toFile();
                     tikaHandler.parse(f);
+                    // luceneの更新
+                    String fn = tikaHandler.getFileName();
+                    String meta = tikaHandler.getMeta();
+                    String ext = tikaHandler.getExtention();
+                    String content = tikaHandler.getContent();
+                    LuceneHandler luceneHandler = new LuceneHandler();
+                    luceneHandler.index(fn, meta, ext, content);
+
                     cnt += 1;
                     int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
                     setProgress(percentage);
