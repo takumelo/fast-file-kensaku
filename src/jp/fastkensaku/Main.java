@@ -1,6 +1,7 @@
 package jp.fastkensaku;
 
 import org.apache.lucene.queryparser.classic.ParseException;
+import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
 
 import java.awt.desktop.SystemEventListener;
 import java.beans.PropertyChangeEvent;
@@ -163,6 +164,8 @@ public class Main {
                     ioException.printStackTrace();
                 } catch (ParseException parseException) {
                     parseException.printStackTrace();
+                } catch (InvalidTokenOffsetsException tokenException){
+                    tokenException.printStackTrace();
                 }
 
                 tab.add("結果", createResultPanel());
