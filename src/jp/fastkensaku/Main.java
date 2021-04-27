@@ -178,9 +178,16 @@ public class Main {
      *
      * @return パネル
      */
-    private JPanel createResultPanel(){
+    private JScrollPane createResultPanel(){
         JPanel panel = new JPanel();
-        return panel;
+        JEditorPane ePane = new JEditorPane();
+        ePane.setContentType("text/html");
+        ePane.setEditable(false);
+        String s = "<h1>Sleeping</h1>";
+        String ss = s.repeat(100);
+        ePane.setText(ss);
+        JScrollPane sPane = new JScrollPane(ePane);
+        return sPane;
     }
 
     /**
