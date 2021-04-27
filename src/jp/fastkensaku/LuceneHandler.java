@@ -18,10 +18,7 @@ import org.apache.lucene.index.IndexWriter;
 import org.apache.lucene.index.IndexWriterConfig;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
-import org.apache.lucene.search.IndexSearcher;
-import org.apache.lucene.search.Query;
-import org.apache.lucene.search.ScoreDoc;
-import org.apache.lucene.search.TopDocs;
+import org.apache.lucene.search.*;
 import org.apache.lucene.store.Directory;
 import org.apache.lucene.store.FSDirectory;
 
@@ -61,37 +58,25 @@ public class LuceneHandler {
         CustomJapaneseKanaAnalyzer jkanaAnalyzer = new CustomJapaneseKanaAnalyzer();
         Query jqk = new QueryParser("jaKanaContent", jkanaAnalyzer).parse(queryStr);
 
+        BooleanQuery bq = new BooleanQuery.Builder()
+                .add(q, BooleanClause.Occur.SHOULD)
+                .add(jq, BooleanClause.Occur.SHOULD)
+                .add(jqk, BooleanClause.Occur.SHOULD)
+                .build();
+
+
         // 3. search
         int hitsPerPage = 10;
         Directory index = FSDirectory.open(path);
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
-        TopDocs docs = searcher.search(q, hitsPerPage);
+        TopDocs docs = searcher.search(bq, hitsPerPage);
         ScoreDoc[] hits = docs.scoreDocs;
 
         // 4. display results
         System.out.println("Found " + hits.length + " hits.");
         for(int i=0;i<hits.length;++i) {
             int docId = hits[i].doc;
-            Document d = searcher.doc(docId);
-            System.out.println((i + 1) + ". " + d.get("fileName"));
-        }
-
-        // JP search
-        TopDocs jDocs = searcher.search(jq, hitsPerPage);
-        ScoreDoc[] jHits = jDocs.scoreDocs;
-        System.out.println("Found " + jHits.length + " hits.");
-        for(int i=0;i<jHits.length;++i){
-            int docId = jHits[i].doc;
-            Document d = searcher.doc(docId);
-            System.out.println((i + 1) + ". " + d.get("fileName"));
-        }
-
-        TopDocs jkDocs = searcher.search(jqk, hitsPerPage);
-        ScoreDoc[] jkHits = jkDocs.scoreDocs;
-        System.out.println("Found " + jkHits.length + " hits.");
-        for(int i=0;i<jkHits.length;++i){
-            int docId = jkHits[i].doc;
             Document d = searcher.doc(docId);
             System.out.println((i + 1) + ". " + d.get("fileName"));
         }
