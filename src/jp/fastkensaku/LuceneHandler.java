@@ -53,7 +53,7 @@ public class LuceneHandler {
         IndexWriterConfig config = new IndexWriterConfig(aWrapper);
 
         IndexWriter w = new IndexWriter(index, config);
-        addDoc(w, p.toString(), p.getFileName().toString(), meta, extName, content);
+        addDoc(w, p, meta, extName, content);
         w.close();
         return 0;
     }
@@ -114,23 +114,24 @@ public class LuceneHandler {
             //Get highlighted text fragments
             String[] frags = highlighter.getBestFragments(stream, text, 10);
 
-            hitsDocs.add(i, d.get("filePath"), d.get("fileName"), frags);
+            Path p = Paths.get(d.get("filePath"));
+            hitsDocs.add(i, p, frags);
 
         }
 
         reader.close();
         return hitsDocs;
     }
-    private static void addDoc(IndexWriter w, String filePath, String fileName, String meta, String extName, String content) throws IOException {
+    private static void addDoc(IndexWriter w, Path p, String meta, String extName, String content) throws IOException {
         Document doc = new Document();
-        doc.add(new TextField("fileName", fileName, Field.Store.YES));
-        doc.add(new TextField("jaFileName", fileName, Field.Store.YES));
+        doc.add(new TextField("fileName", p.getFileName().toString(), Field.Store.YES));
+        doc.add(new TextField("jaFileName", p.getFileName().toString(), Field.Store.YES));
         doc.add(new TextField("enContent", content, Field.Store.YES));
         doc.add(new TextField("jaContent", content, Field.Store.YES));
         doc.add(new TextField("jaKanaContent", content, Field.Store.YES));
 
         // use a string field for isbn because we don't want it tokenized
-        doc.add(new StringField("filePath", filePath, Field.Store.YES));
+        doc.add(new StringField("filePath", p.toString(), Field.Store.YES));
         doc.add(new StringField("meta", meta, Field.Store.YES));
         doc.add(new StringField("extName", extName, Field.Store.YES));
         w.addDocument(doc);
