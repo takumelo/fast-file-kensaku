@@ -36,7 +36,7 @@ public class LuceneHandler {
     public LuceneHandler(){
         path = Paths.get("C:\\Projects\\20210402_fast_kensaku\\lucene_storage");
     }
-    public int index(String fileName, String meta, String extName, String content) throws IOException, ParseException {
+    public int index(Path p, String meta, String extName, String content) throws IOException, ParseException {
         // 日本語用アナライザ
         Map<String,Analyzer> analyzerPerField = new HashMap<>();
         analyzerPerField.put("jaContent", new CustomJapaneseAnalyzer());
@@ -53,11 +53,11 @@ public class LuceneHandler {
         IndexWriterConfig config = new IndexWriterConfig(aWrapper);
 
         IndexWriter w = new IndexWriter(index, config);
-        addDoc(w, fileName,meta, extName, content);
+        addDoc(w, p.toString(), p.getFileName().toString(), meta, extName, content);
         w.close();
         return 0;
     }
-    public int search(String queryStr) throws IOException, ParseException, InvalidTokenOffsetsException {
+    public HitsDocs search(String queryStr) throws IOException, ParseException, InvalidTokenOffsetsException {
 
         // アナライザ準備
         CustomEnglishAnalyzer analyzer = new CustomEnglishAnalyzer();
@@ -100,28 +100,28 @@ public class LuceneHandler {
 
         // 4. display results
         // https://northcoder.com/post/lucene-83-basic-search-examples/
-        System.out.println("Found " + hits.length + " hits.");
+
+        HitsDocs hitsDocs = new HitsDocs();
+        hitsDocs.setTotalHits(hits.length);
+
         for(int i=0;i<hits.length;++i) {
             int docId = hits[i].doc;
             Document d = searcher.doc(docId);
-            System.out.println((i + 1) + ". " + d.get("fileName"));
             String text = d.get("jaContent");
             //Create token stream
             TokenStream stream = TokenSources.getTokenStream("jaContent", reader.getTermVectors(docId), text, jAnalyzer, -1);
 
             //Get highlighted text fragments
             String[] frags = highlighter.getBestFragments(stream, text, 10);
-            for (String frag : frags)
-            {
-                System.out.println("=======================");
-                System.out.println(frag);
-            }
+
+            hitsDocs.add(i, d.get("filePath"), d.get("fileName"), frags);
+
         }
 
         reader.close();
-        return 0;
+        return hitsDocs;
     }
-    private static void addDoc(IndexWriter w, String fileName, String meta, String extName, String content) throws IOException {
+    private static void addDoc(IndexWriter w, String filePath, String fileName, String meta, String extName, String content) throws IOException {
         Document doc = new Document();
         doc.add(new TextField("fileName", fileName, Field.Store.YES));
         doc.add(new TextField("jaFileName", fileName, Field.Store.YES));
@@ -130,6 +130,7 @@ public class LuceneHandler {
         doc.add(new TextField("jaKanaContent", content, Field.Store.YES));
 
         // use a string field for isbn because we don't want it tokenized
+        doc.add(new StringField("filePath", filePath, Field.Store.YES));
         doc.add(new StringField("meta", meta, Field.Store.YES));
         doc.add(new StringField("extName", extName, Field.Store.YES));
         w.addDocument(doc);

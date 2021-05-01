@@ -9,6 +9,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 
 import java.io.IOException;
+import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -18,6 +19,7 @@ import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.stream.Stream;
@@ -158,8 +160,9 @@ public class Main {
 
                 LuceneHandler luceneHandler = new LuceneHandler();
                 String searchTxt = searchBox.getText();
+                HitsDocs res = null;
                 try {
-                    luceneHandler.search(searchTxt);
+                    res = luceneHandler.search(searchTxt);
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 } catch (ParseException parseException) {
@@ -168,9 +171,11 @@ public class Main {
                     tokenException.printStackTrace();
                 }
 
-                tab.add("結果", createResultPanel());
-                int ind = tab.getTabCount() - 1;
-                tab.setTabComponentAt(ind, new ButtonTabComponent(tab));
+                if(res != null){
+                    tab.add("結果", createResultPanel(res.outputHTML()));
+                    int ind = tab.getTabCount() - 1;
+                    tab.setTabComponentAt(ind, new ButtonTabComponent(tab));
+                }
             }
         });
         return button;
@@ -181,14 +186,27 @@ public class Main {
      *
      * @return パネル
      */
-    private JScrollPane createResultPanel(){
+    private JScrollPane createResultPanel(String resHTML){
         JPanel panel = new JPanel();
         JEditorPane ePane = new JEditorPane();
         ePane.setContentType("text/html");
         ePane.setEditable(false);
-        String s = "<h1>Sleeping</h1>";
-        String ss = s.repeat(100);
-        ePane.setText(ss);
+        ePane.setText(resHTML);
+        ePane.addHyperlinkListener(new HyperlinkListener() {
+                                       private String tooltip;
+                                       @Override public void hyperlinkUpdate(HyperlinkEvent e) {
+                                           if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
+                                               URL url = e.getURL();
+                                               File file = new File(url.getFile());
+                                               System.out.println(file.toString());
+                                               Desktop desktop = Desktop.getDesktop();
+                                               try {
+                                                   desktop.open(file);
+                                               } catch (IOException ioException) {
+                                                   ioException.printStackTrace();
+                                               }
+                                           }
+                                       }});
         JScrollPane sPane = new JScrollPane(ePane);
         return sPane;
     }
@@ -257,12 +275,11 @@ public class Main {
                     File f = pp.toFile();
                     tikaHandler.parse(f);
                     // luceneの更新
-                    String fn = tikaHandler.getFileName();
                     String meta = tikaHandler.getMeta();
                     String ext = tikaHandler.getExtention();
                     String content = tikaHandler.getContent();
                     LuceneHandler luceneHandler = new LuceneHandler();
-                    luceneHandler.index(fn, meta, ext, content);
+                    luceneHandler.index(pp, meta, ext, content);
 
                     cnt += 1;
                     int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
