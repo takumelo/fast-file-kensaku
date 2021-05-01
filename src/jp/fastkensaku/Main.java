@@ -2,6 +2,7 @@ package jp.fastkensaku;
 
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
+import org.apache.poi.xssf.model.Styles;
 
 import java.awt.desktop.SystemEventListener;
 import java.beans.PropertyChangeEvent;
@@ -26,6 +27,11 @@ import java.util.stream.Stream;
 import javax.swing.JFileChooser;
 import javax.swing.filechooser.FileSystemView;
 import javax.swing.table.DefaultTableModel;
+
+import javax.swing.text.Element;
+import javax.swing.text.html.HTMLDocument;
+import javax.swing.text.html.HTMLEditorKit;
+import javax.swing.text.html.StyleSheet;
 
 
 public class Main {
@@ -189,7 +195,9 @@ public class Main {
     private JScrollPane createResultPanel(String resHTML){
         JPanel panel = new JPanel();
         JEditorPane ePane = new JEditorPane();
-        ePane.setContentType("text/html");
+        HTMLEditorKit kit = new HTMLEditorKit();
+        kit.setStyleSheet(createHTMLStyle());
+        ePane.setEditorKit(kit);
         ePane.setEditable(false);
         ePane.setText(resHTML);
         ePane.addHyperlinkListener(new HyperlinkListener() {
@@ -209,6 +217,12 @@ public class Main {
                                        }});
         JScrollPane sPane = new JScrollPane(ePane);
         return sPane;
+    }
+
+    private StyleSheet createHTMLStyle(){
+        StyleSheet ss = new StyleSheet();
+        ss.addRule("li{list-style:none;padding:16px;margin:8px;}");
+        return ss;
     }
 
     /**
