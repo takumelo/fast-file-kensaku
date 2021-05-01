@@ -1,5 +1,6 @@
 package jp.fastkensaku;
 
+import javax.swing.text.html.HTML;
 import java.util.ArrayList;
 import java.nio.file.Path;
 
@@ -16,21 +17,17 @@ public class HitsDocs {
     public void setTotalHits(int num){
         this.totalHits = num;
     }
-    private ArrayList<String> doChildFormat(){
-        ArrayList<String> res = new ArrayList<String>();
-        res.add("<ul>");
+    private String doChildFormat(){
+        String tmpRes = "";
         for(HitsDoc d: this.hitsDocList){
-            res.add("<li>");
-            res.add(d.formatPrintHTML());
-            res.add("</li>");
+            tmpRes += HTMLUtil.wrapTag(HTMLUtil.li, d.formatPrintHTML());
         }
-        res.add("</ul>");
+        String res = HTMLUtil.wrapTag(HTMLUtil.ul, tmpRes);
         return res;
     }
     public String outputHTML(){
-        String header = "<div>" + this.totalHits + "件" + "</div>";
-        ArrayList<String> bodyList = this.doChildFormat();
-        String body = String.join("", bodyList);
+        String header = HTMLUtil.wrapTag(HTMLUtil.div, this.totalHits + "件");
+        String body = this.doChildFormat();
         String footer = "";
         String result = header + body + footer;
         return result;

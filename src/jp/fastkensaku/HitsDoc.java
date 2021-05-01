@@ -23,14 +23,15 @@ public class HitsDoc {
         }
     }
     public String formatPrintHTML(){
-        String path = "<div><a href=\"file://" + this.path.getParent().toString() + "\">" + this.path.getParent().toString() + "</a></div>";
-        String fileName = "<div><a href=\"file://" + this.filePath + "\">" + this.fileName + "</a></div>";
-        String highlight = "<div>";
+        String tmpPath = HTMLUtil.makeATag(this.path.getParent().toString(), this.path.getParent().toString());
+        String path = HTMLUtil.wrapTag(HTMLUtil.div, tmpPath);
+        String tmpFile = HTMLUtil.makeATag(this.filePath, this.fileName);
+        String fileName = HTMLUtil.wrapTag(HTMLUtil.div, tmpFile);
+        String tmpHighlight = "";
         for(String ht: highlightTexts){
-            highlight += "<div>" + ht + "</div>";
+            tmpHighlight += HTMLUtil.wrapTag(HTMLUtil.div, ht);
         }
-        highlight += "</div>";
-
+        String highlight = HTMLUtil.wrapTag(HTMLUtil.div, tmpHighlight);
         String res = path + fileName + highlight;
         return res;
     }
