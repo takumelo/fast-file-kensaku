@@ -25,7 +25,7 @@ public class HitsDoc {
     public String formatPrintHTML(){
         String tmpPath = HTMLUtil.makeATag(this.path.getParent().toString(), this.path.getParent().toString());
         String path = HTMLUtil.wrapTag(HTMLUtil.div, tmpPath);
-        String tmpFile = HTMLUtil.makeATag(this.filePath, this.fileName);
+        String tmpFile = HTMLUtil.makeATagWithCls(this.filePath, this.fileName, HTMLUtil.clsFileName);
         String fileName = HTMLUtil.wrapTag(HTMLUtil.div, tmpFile);
         String tmpHighlight = "";
         for(String ht: highlightTexts){

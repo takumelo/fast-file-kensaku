@@ -6,6 +6,8 @@ public class HTMLUtil {
     public static final String div = "div";
     public static final String li = "li";
     public static final String ul = "ul";
+    public static final String clsHighlightWrap = "highlightWrap";
+    public static final String clsFileName = "fileName";
     public static String wrapTag(String tag, String text){
         String tmp = "<%1$s>%2$s</%1$s>";
         String element = String.format(tmp, tag, text);
@@ -18,9 +20,42 @@ public class HTMLUtil {
         }
         return element;
     }
+    public static String wrapTagWithCls(String tag, String text, String cls){
+        String tmp = "<%1$s class=\"%3$s\">%2$s</%1$s>";
+        String element = String.format(tmp, tag, text, cls);
+        return element;
+    }
+    public static String wrapTagWithCls(String tag, ArrayList<String> texts, String cls){
+        String element = "";
+        for(String s: texts){
+            element += wrapTagWithCls(tag, s, cls);
+        }
+        return element;
+    }
     public static String makeATag(String url, String text){
         String tmp = "<a href=\"file://%1$s\">%2$s</a>";
         String element = String.format(tmp, url, text);
         return element;
+    }
+    public static String makeATagWithCls(String url, String text, String cls){
+        String tmp = "<a class=\"%3$s\" href=\"file://%1$s\">%2$s</a>";
+        String element = String.format(tmp, url, text, cls);
+        return element;
+    }
+    public static String liStyle(Integer padding, Integer margin){
+        String tmpStyle = "li{list-style:none;padding:%1$dpx;margin:%1$dpx;background-color:#73BDFA;}";
+        String style = String.format(tmpStyle, padding, margin);
+        return style;
+    }
+    public static String aFileNameStyle(Integer textSize){
+        String tmpStyle = ".%1$s { font-size: %2$d; }";
+        String style = String.format(tmpStyle, clsFileName, textSize);
+        return style;
+    }
+    public static String applyStyle(){
+        String css = "";
+        css += liStyle(8, 8);
+        css += aFileNameStyle(20);
+        return css;
     }
 }

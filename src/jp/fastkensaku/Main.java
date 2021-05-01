@@ -221,7 +221,7 @@ public class Main {
 
     private StyleSheet createHTMLStyle(){
         StyleSheet ss = new StyleSheet();
-        ss.addRule("li{list-style:none;padding:16px;margin:8px;}");
+        ss.addRule(HTMLUtil.applyStyle());
         return ss;
     }
 
