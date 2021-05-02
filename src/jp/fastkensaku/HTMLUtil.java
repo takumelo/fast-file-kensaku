@@ -42,23 +42,28 @@ public class HTMLUtil {
         String element = String.format(tmp, url, text, cls);
         return element;
     }
-    public static String liStyle(Integer padding, Integer margin){
+    private static String liStyle(Integer padding, Integer margin){
         String tmpStyle = "li{list-style:none;padding:%1$dpx;margin:%1$dpx; border: solid;;}";
         String style = String.format(tmpStyle, padding, margin);
         return style;
     }
-    public static String highlightWrapCls(Integer padding, Integer margin, String cls){
+    private static String highlightWrapCls(Integer padding, Integer margin, String cls){
         String tmpStyle = ".%3$s {list-style:none;padding:%1$dpx;margin:%1$dpx; border: solid;;}";
         String style = String.format(tmpStyle, padding, margin, cls);
         return style;
     }
-    public static String aFileNameStyle(Integer textSize){
-        String tmpStyle = ".%1$s { font-size: %2$d; }";
+    private static String aFileNameStyle(Integer textSize){
+        String tmpStyle = ".%1$s { font-size: %2$d;color: #0645ad; }";
         String style = String.format(tmpStyle, clsFileName, textSize);
+        return style;
+    }
+    private static String aStyle(){
+        String style = "a{text-decoration: underline;}";
         return style;
     }
     public static String applyStyle(){
         String css = "";
+        css += aStyle();
         css += liStyle(8, 8);
         css += aFileNameStyle(20);
         css += highlightWrapCls(2, 2, clsHighlightWrap);
