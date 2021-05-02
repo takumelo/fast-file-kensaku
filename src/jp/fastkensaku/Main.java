@@ -206,7 +206,6 @@ public class Main {
                                            if (e.getEventType() == HyperlinkEvent.EventType.ACTIVATED) {
                                                URL url = e.getURL();
                                                File file = new File(url.getFile());
-                                               System.out.println(file.toString());
                                                Desktop desktop = Desktop.getDesktop();
                                                try {
                                                    desktop.open(file);

@@ -48,7 +48,7 @@ public class HTMLUtil {
         return style;
     }
     private static String highlightWrapCls(Integer padding, Integer margin, String cls){
-        String tmpStyle = ".%3$s {list-style:none;padding:%1$dpx;margin:%1$dpx; border: solid;;}";
+        String tmpStyle = ".%3$s {list-style:none;padding:%1$dpx;margin:%1$dpx; border: solid;margin-left: 20px;}";
         String style = String.format(tmpStyle, padding, margin, cls);
         return style;
     }
