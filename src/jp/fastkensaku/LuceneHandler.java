@@ -92,7 +92,7 @@ public class LuceneHandler {
         //used to markup highlighted terms found in the best sections of a text
         Highlighter highlighter = new Highlighter(formatter, scorer);
         //It breaks text up into same-size texts but does not split up spans
-        Fragmenter fragmenter = new SimpleSpanFragmenter(scorer, 10);
+        Fragmenter fragmenter = new SimpleSpanFragmenter(scorer, 30);
         //breaks text up into same-size fragments with no concerns over spotting sentence boundaries.
         //Fragmenter fragmenter = new SimpleFragmenter(10);
         //set fragmenter to highlighter
@@ -112,7 +112,7 @@ public class LuceneHandler {
             TokenStream stream = TokenSources.getTokenStream("jaContent", reader.getTermVectors(docId), text, jAnalyzer, -1);
 
             //Get highlighted text fragments
-            String[] frags = highlighter.getBestFragments(stream, text, 10);
+            String[] frags = highlighter.getBestFragments(stream, text, 3);
 
             Path p = Paths.get(d.get("filePath"));
             hitsDocs.add(i, p, frags);

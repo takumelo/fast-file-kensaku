@@ -43,8 +43,13 @@ public class HTMLUtil {
         return element;
     }
     public static String liStyle(Integer padding, Integer margin){
-        String tmpStyle = "li{list-style:none;padding:%1$dpx;margin:%1$dpx;background-color:#73BDFA;}";
+        String tmpStyle = "li{list-style:none;padding:%1$dpx;margin:%1$dpx; border: solid;;}";
         String style = String.format(tmpStyle, padding, margin);
+        return style;
+    }
+    public static String highlightWrapCls(Integer padding, Integer margin, String cls){
+        String tmpStyle = ".%3$s {list-style:none;padding:%1$dpx;margin:%1$dpx; border: solid;;}";
+        String style = String.format(tmpStyle, padding, margin, cls);
         return style;
     }
     public static String aFileNameStyle(Integer textSize){
@@ -56,6 +61,7 @@ public class HTMLUtil {
         String css = "";
         css += liStyle(8, 8);
         css += aFileNameStyle(20);
+        css += highlightWrapCls(2, 2, clsHighlightWrap);
         return css;
     }
 }

@@ -29,7 +29,7 @@ public class HitsDoc {
         String fileName = HTMLUtil.wrapTag(HTMLUtil.div, tmpFile);
         String tmpHighlight = "";
         for(String ht: highlightTexts){
-            tmpHighlight += HTMLUtil.wrapTag(HTMLUtil.div, ht);
+            tmpHighlight += HTMLUtil.wrapTagWithCls(HTMLUtil.div, ht + "...", HTMLUtil.clsHighlightWrap);
         }
         String highlight = HTMLUtil.wrapTag(HTMLUtil.div, tmpHighlight);
         String res = path + fileName + highlight;
