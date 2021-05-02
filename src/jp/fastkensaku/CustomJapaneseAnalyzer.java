@@ -24,7 +24,7 @@ public class CustomJapaneseAnalyzer extends Analyzer {
         JapaneseTokenizer src = new JapaneseTokenizer(jaUserDict, true, JapaneseTokenizer.Mode.NORMAL);
         // ascii文字のみ
         Pattern p = Pattern.compile("\\p{ASCII}*");
-        TokenStream result = new PatternReplaceFilter(src, p, " ", true);
+        TokenStream result = new PatternReplaceFilter(src, p, "", true);
         result = new StopFilter(src,  JapaneseAnalyzer.getDefaultStopSet());
         return new TokenStreamComponents(src, result);
     }
