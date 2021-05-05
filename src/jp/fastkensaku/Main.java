@@ -36,6 +36,7 @@ import javax.swing.text.html.StyleSheet;
 
 public class Main {
 
+    private JFrame frame1;
     private JTabbedPane tab;
     private JPanel panel;
     private JFrame settingFrame;
@@ -166,6 +167,10 @@ public class Main {
 
                 LuceneHandler luceneHandler = new LuceneHandler();
                 String searchTxt = searchBox.getText();
+                if(searchTxt.equals("")){
+                    JOptionPane.showMessageDialog(frame1, "検索ワードが入力されていません");
+                    return;
+                }
                 HitsDocs res = null;
                 try {
                     res = luceneHandler.search(searchTxt);
@@ -505,7 +510,7 @@ public class Main {
      *
      */
     private void initGui() {
-        JFrame frame1 = new JFrame();
+        frame1 = new JFrame();
         frame1.setLayout(new GridBagLayout());
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
