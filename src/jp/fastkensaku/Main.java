@@ -189,6 +189,10 @@ public class Main {
                 }
             }
         });
+
+        // エンターキーで動作するように
+        frame1.getRootPane().setDefaultButton(button);
+
         return button;
     }
 
