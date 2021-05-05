@@ -20,7 +20,7 @@ public class CustomEnglishAnalyzer extends Analyzer {
         // TODO: WhitespaceTokenizer()のほうがいい？
         StandardTokenizer src = new StandardTokenizer();
         // ascii文字以外
-        Pattern p = Pattern.compile("^.*[^\\p{ASCII}].*");
+        Pattern p = Pattern.compile("[^\\p{ASCII}]");
         TokenStream result = new PatternReplaceFilter(src, p, " ", true);
         result = new LowerCaseFilter(src);
         result = new StopFilter(result,  EnglishAnalyzer.ENGLISH_STOP_WORDS_SET);

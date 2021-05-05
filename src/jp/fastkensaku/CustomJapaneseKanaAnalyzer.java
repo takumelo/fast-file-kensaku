@@ -24,7 +24,7 @@ public class CustomJapaneseKanaAnalyzer extends Analyzer {
     protected TokenStreamComponents createComponents(String fieldName) {
         JapaneseTokenizer src = new JapaneseTokenizer(jaUserDict, true, JapaneseTokenizer.Mode.NORMAL);
         // ascii文字のみ
-        Pattern p = Pattern.compile("\\p{ASCII}*");
+        Pattern p = Pattern.compile("\\p{ASCII}");
         TokenStream result = new PatternReplaceFilter(src, p, "", true);
         result = new StopFilter(src,  JapaneseAnalyzer.getDefaultStopSet());
         //http://www.mwsoft.jp/programming/lucene/lucene_filter.html
