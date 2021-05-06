@@ -61,4 +61,22 @@ public class CustomAnalyzerTest {
             System.out.println(i);
         }
     }
+    @Test
+    public void testKanaJapaneseHighlight() throws Exception {
+        CustomJapaneseKanaAnalyzer jAnalyzer = new CustomJapaneseKanaAnalyzer();
+        Query jq = new QueryParser("jaKanaContent", jAnalyzer).parse("にっぽん");
+
+        Formatter formatter = new SimpleHTMLFormatter();
+        QueryScorer scorer = new QueryScorer(jq);
+        Highlighter highlighter = new Highlighter(formatter, scorer);
+        Fragmenter fragmenter = new SimpleSpanFragmenter(scorer, 2);
+        highlighter.setTextFragmenter(fragmenter);
+        TokenStream stream = TokenSources.getTokenStream("jaKanaContent", null, "日本IT企業の勃興", jAnalyzer, -1);
+
+        //Get highlighted text fragments
+        String[] frags = highlighter.getBestFragments(stream, "日本IT企業の勃興", 3);
+        for(String i: frags){
+            System.out.println(i);
+        }
+    }
 }
