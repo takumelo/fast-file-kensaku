@@ -15,13 +15,12 @@ public class CustomEnglishAnalyzer extends Analyzer {
     @Override
     protected TokenStreamComponents createComponents(String fieldName) {
         // https://stackoverflow.com/questions/61075242/is-there-a-way-to-remove-all-special-characters-using-lucene-filters
-        // TODO: WhitespaceTokenizer()のほうがいい？
         StandardTokenizer src = new StandardTokenizer();
 
         // ascii文字以外を置換
         Pattern p = Pattern.compile("[^\\p{ASCII}]");
-        TokenStream result = new PatternReplaceFilter(src, p, " ", true);
-        result = new LowerCaseFilter(src);
+        TokenStream result = new PatternReplaceFilter(src, p, "", true);
+        result = new LowerCaseFilter(result);
 
         // 置換した空白トークンと英語のストップワードの削除
         CharArraySet stopSet = StopFilter.makeStopSet("");
