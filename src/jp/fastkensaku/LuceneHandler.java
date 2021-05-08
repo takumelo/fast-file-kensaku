@@ -2,8 +2,11 @@ package jp.fastkensaku;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.math.BigInteger;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
@@ -32,17 +35,20 @@ import org.apache.lucene.search.highlight.TokenSources;
 import org.apache.lucene.search.highlight.InvalidTokenOffsetsException;
 
 public class LuceneHandler {
-    private static Path path;
+    private Path path;
+    private String indexRoot;
     private CustomEnglishAnalyzer engAnalyzer;
     private CustomJapaneseAnalyzer jpnAnalyzer;
     private CustomJapaneseKanaAnalyzer jpnKanaAnalyzer;
     public LuceneHandler(){
-        path = Paths.get("index");
+        indexRoot = "index";
+        path = Paths.get(indexRoot);
         engAnalyzer = new CustomEnglishAnalyzer();
         jpnAnalyzer = new CustomJapaneseAnalyzer();
         jpnKanaAnalyzer = new CustomJapaneseKanaAnalyzer();
     }
-    public int index(Path p, String meta, String extName, String content) throws IOException, ParseException {
+    public int index(Path rootDir , Path p, String meta, String extName, String content) throws IOException, ParseException, NoSuchAlgorithmException {
+        System.out.println(rootDir);
         // 日本語用アナライザ
         Map<String,Analyzer> analyzerPerField = new HashMap<>();
         analyzerPerField.put("jaContent", jpnAnalyzer);
@@ -53,8 +59,12 @@ public class LuceneHandler {
         PerFieldAnalyzerWrapper aWrapper =
                 new PerFieldAnalyzerWrapper(engAnalyzer, analyzerPerField);
 
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        byte[] md5_result = md5.digest(rootDir.toString().getBytes());
+        String hashDir = String.format("%020x", new BigInteger(1, md5_result));
+        System.out.println(hashDir);
         // 1. create the index
-        Directory index = FSDirectory.open(path);
+        Directory index = FSDirectory.open(Paths.get(indexRoot, hashDir));
 
         IndexWriterConfig config = new IndexWriterConfig(aWrapper);
 
@@ -63,8 +73,8 @@ public class LuceneHandler {
         w.close();
         return 0;
     }
-    public HitsDocs search(String queryStr) throws IOException, ParseException, InvalidTokenOffsetsException {
-
+    public HitsDocs search(String queryStr, String searchDir) throws IOException, ParseException, InvalidTokenOffsetsException, NoSuchAlgorithmException {
+        System.out.println(searchDir);
         // アナライザ準備
         Query fjq = new QueryParser("jaFileName", jpnAnalyzer).parse(queryStr);
         Query cjq = new QueryParser("jaContent", jpnAnalyzer).parse(queryStr);
@@ -84,7 +94,11 @@ public class LuceneHandler {
 
         // 3. search
         int hitsPerPage = 10;
-        Directory index = FSDirectory.open(path);
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        byte[] md5_result = md5.digest(searchDir.getBytes());
+        String hashDir = String.format("%020x", new BigInteger(1, md5_result));
+        System.out.println(hashDir);
+        Directory index = FSDirectory.open(Paths.get(indexRoot, hashDir));
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
         TopDocs docs = searcher.search(bq, hitsPerPage);

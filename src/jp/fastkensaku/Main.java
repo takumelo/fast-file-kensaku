@@ -14,6 +14,7 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
@@ -167,19 +168,22 @@ public class Main {
 
                 LuceneHandler luceneHandler = new LuceneHandler();
                 String searchTxt = searchBox.getText();
+                String searchDir = String.valueOf(dirComboBox.getSelectedItem());
                 if(searchTxt.equals("")){
                     JOptionPane.showMessageDialog(frame1, "検索ワードが入力されていません");
                     return;
                 }
                 HitsDocs res = null;
                 try {
-                    res = luceneHandler.search(searchTxt);
+                    res = luceneHandler.search(searchTxt, searchDir);
                 } catch (IOException ioException) {
                     ioException.printStackTrace();
                 } catch (ParseException parseException) {
                     parseException.printStackTrace();
                 } catch (InvalidTokenOffsetsException tokenException){
                     tokenException.printStackTrace();
+                } catch (NoSuchAlgorithmException noSuchAlgorithmException) {
+                    noSuchAlgorithmException.printStackTrace();
                 }
 
                 if(res != null){
@@ -301,7 +305,7 @@ public class Main {
                     String ext = tikaHandler.getExtention();
                     String content = tikaHandler.getContent();
                     LuceneHandler luceneHandler = new LuceneHandler();
-                    luceneHandler.index(pp, meta, ext, content);
+                    luceneHandler.index(Paths.get(path), pp, meta, ext, content);
 
                     cnt += 1;
                     int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
