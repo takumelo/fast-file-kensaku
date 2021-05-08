@@ -37,7 +37,7 @@ public class LuceneHandler {
     private CustomJapaneseAnalyzer jpnAnalyzer;
     private CustomJapaneseKanaAnalyzer jpnKanaAnalyzer;
     public LuceneHandler(){
-        path = Paths.get("C:\\Projects\\20210402_fast_kensaku\\lucene_storage");
+        path = Paths.get("index");
         engAnalyzer = new CustomEnglishAnalyzer();
         jpnAnalyzer = new CustomJapaneseAnalyzer();
         jpnKanaAnalyzer = new CustomJapaneseKanaAnalyzer();
