@@ -184,7 +184,7 @@ public class DBHandler {
         String tmpSql = """
             CREATE TABLE IF NOT EXISTS "%s"(
                 'dir' text PRIMARY KEY,
-                'hash' text,
+                'fileUpdated' integer,
                 'updated' integer,
                 'lucenized' integer
                 check(lucenized = 0 or lucenized = 1)
@@ -210,7 +210,7 @@ public class DBHandler {
      */
     public int insertFiles(String tblName, Path path, int updateTime){
         String tmpSql = """
-                INSERT INTO "%s"('dir', 'updated') VALUES(?, ?)
+                INSERT INTO "%s"('dir', 'updated', 'fileUpdated') VALUES(?, ?, ?)
                 """;
         String sql = String.format(tmpSql, tblName);
 
@@ -218,6 +218,8 @@ public class DBHandler {
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, path.toString());
             pstmt.setInt(2, updateTime);
+            long fileUpdated = path.toFile().lastModified();
+            pstmt.setLong(3, fileUpdated);
             pstmt.executeUpdate();
         } catch (SQLException e) {
             System.out.println(e.getMessage());

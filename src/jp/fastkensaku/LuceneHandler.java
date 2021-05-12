@@ -15,10 +15,7 @@ import java.util.LinkedHashMap;
 import org.apache.lucene.analysis.TokenStream;
 import org.apache.lucene.analysis.miscellaneous.PerFieldAnalyzerWrapper;
 import org.apache.lucene.analysis.Analyzer;
-import org.apache.lucene.document.Document;
-import org.apache.lucene.document.Field;
-import org.apache.lucene.document.StringField;
-import org.apache.lucene.document.TextField;
+import org.apache.lucene.document.*;
 import org.apache.lucene.index.*;
 import org.apache.lucene.queryparser.classic.ParseException;
 import org.apache.lucene.queryparser.classic.QueryParser;
@@ -48,7 +45,6 @@ public class LuceneHandler {
         jpnKanaAnalyzer = new CustomJapaneseKanaAnalyzer();
     }
     public int index(Path rootDir , Path p, String meta, String extName, String content) throws IOException, ParseException, NoSuchAlgorithmException {
-        System.out.println(rootDir);
         // 日本語用アナライザ
         Map<String,Analyzer> analyzerPerField = new HashMap<>();
         analyzerPerField.put("jaContent", jpnAnalyzer);
@@ -62,14 +58,14 @@ public class LuceneHandler {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
         byte[] md5_result = md5.digest(rootDir.toString().getBytes());
         String hashDir = String.format("%020x", new BigInteger(1, md5_result));
-        System.out.println(hashDir);
         // 1. create the index
         Directory index = FSDirectory.open(Paths.get(indexRoot, hashDir));
 
         IndexWriterConfig config = new IndexWriterConfig(aWrapper);
 
         IndexWriter w = new IndexWriter(index, config);
-        addDoc(w, p, meta, extName, content);
+        long updatedAt = p.toFile().lastModified();
+        addDoc(w, p, meta, extName, content, updatedAt);
         w.close();
         return 0;
     }
@@ -106,7 +102,7 @@ public class LuceneHandler {
         reader.close();
         return hitsDocs;
     }
-    private static void addDoc(IndexWriter w, Path p, String meta, String extName, String content) throws IOException {
+    private static void addDoc(IndexWriter w, Path p, String meta, String extName, String content, long updatedAt) throws IOException {
         Document doc = new Document();
         doc.add(new TextField("enFileName", p.getFileName().toString(), Field.Store.YES));
         doc.add(new TextField("jaFileName", p.getFileName().toString(), Field.Store.YES));
@@ -119,6 +115,7 @@ public class LuceneHandler {
         doc.add(new StringField("filePath", p.toString(), Field.Store.YES));
         doc.add(new StringField("meta", meta, Field.Store.YES));
         doc.add(new StringField("extName", extName, Field.Store.YES));
+        doc.add(new NumericDocValuesField("updated", updatedAt));
         w.addDocument(doc);
     }
     private HitsDocs makeHitsDocs(IndexReader reader, IndexSearcher searcher, Query query, ScoreDoc[] hits) throws IOException, InvalidTokenOffsetsException {
