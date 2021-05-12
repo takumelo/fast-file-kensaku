@@ -94,10 +94,7 @@ public class LuceneHandler {
 
         // 3. search
         int hitsPerPage = 10;
-        MessageDigest md5 = MessageDigest.getInstance("MD5");
-        byte[] md5_result = md5.digest(searchDir.getBytes());
-        String hashDir = String.format("%020x", new BigInteger(1, md5_result));
-        System.out.println(hashDir);
+        String hashDir = HashUtil.getMD5(searchDir);
         Directory index = FSDirectory.open(Paths.get(indexRoot, hashDir));
         IndexReader reader = DirectoryReader.open(index);
         IndexSearcher searcher = new IndexSearcher(reader);
