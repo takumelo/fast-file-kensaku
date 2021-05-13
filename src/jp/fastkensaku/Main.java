@@ -139,6 +139,7 @@ public class Main {
         panel.add(childTextPanel, gbc);
         gbc.gridy = 1;
         gbc.weighty = 1.0;
+        childBtnPanel.add(createUpdateFileButton());
         childBtnPanel.add(createSearchButton());
         panel.add(childBtnPanel, gbc);
 
@@ -196,6 +197,24 @@ public class Main {
 
         // エンターキーで動作するように
         frame1.getRootPane().setDefaultButton(button);
+
+        return button;
+    }
+
+    /**
+     * ファイル情報更新ボタンの作成
+     *
+     * @return ファイル情報更新ボタン
+     */
+    private JButton createUpdateFileButton(){
+        JButton button = new JButton("ファイル情報更新");
+        button.addActionListener(new ActionListener(){
+            public void actionPerformed(ActionEvent e){
+                LuceneHandler luceneHandler = new LuceneHandler();
+                // String searchTxt = searchBox.getText();
+                String searchDir = String.valueOf(dirComboBox.getSelectedItem());
+            }
+        });
 
         return button;
     }
