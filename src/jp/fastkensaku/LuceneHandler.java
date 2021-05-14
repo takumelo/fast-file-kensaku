@@ -69,6 +69,10 @@ public class LuceneHandler {
         w.close();
         return 0;
     }
+    public int update(Path rootDir , Path p, String meta, String extName, String content) throws IOException, ParseException, NoSuchAlgorithmException {
+        // TODO:
+        return 0;
+    }
     public HitsDocs search(String queryStr, String searchDir) throws IOException, ParseException, InvalidTokenOffsetsException, NoSuchAlgorithmException {
         System.out.println(searchDir);
         // アナライザ準備

@@ -263,4 +263,30 @@ public class DBHandler {
         }
         return cnt;
     }
+
+    public long getFileUpdatedAt(String dir, Path path){
+        String strPath = path.toString();
+        String tmpSql = """
+        SELECT * FROM "%s" WHERE dir = ?
+        """;
+        String sql = String.format(tmpSql, dir);
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, path.toString());
+            ResultSet rs = pstmt.executeQuery();
+            long time = -1;
+            while (rs.next()) {
+                time = rs.getLong("fileUpdated");
+            }
+            return time;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
+    }
+
+    public int updateFiles(String tblName, Path path, int updateTime){
+        return 0;
+        // 特定のディレクトリ列の値の更新
+    }
 }

@@ -163,7 +163,7 @@ public class Main {
      * @return 検索ボタン
      */
     private JButton createSearchButton(){
-        JButton button = new JButton("検索");
+        JButton button = new JButton("検索[EnterKey]");
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
 
@@ -208,15 +208,99 @@ public class Main {
      */
     private JButton createUpdateFileButton(){
         JButton button = new JButton("ファイル情報更新");
+        JProgressBar pb = createProgBar();
+        pb.setStringPainted(true);
+        String searchDir = String.valueOf(dirComboBox.getSelectedItem());
+        pb.setString("追加準備中: " + searchDir);
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 LuceneHandler luceneHandler = new LuceneHandler();
                 // String searchTxt = searchBox.getText();
-                String searchDir = String.valueOf(dirComboBox.getSelectedItem());
+                UpdateRecurWorker updateRecurWorker = new UpdateRecurWorker(dbHandler, searchDir);
+                updateRecurWorker.addPropertyChangeListener(
+                        new PropertyChangeListener() {
+                            public  void propertyChange(PropertyChangeEvent evt) {
+                                if ("progress".equals(evt.getPropertyName())) {
+                                    // 進んでるとき
+                                    pb.setString("追加中: " + searchDir);
+                                    pb.setValue((Integer)evt.getNewValue());
+                                }else if("state".equals(evt.getPropertyName())
+                                        && (SwingWorker.StateValue.DONE.equals(evt.getNewValue()))){
+                                    // 終了時
+                                    progPanel.remove(pb);
+                                    progPanel.revalidate();
+                                    progPanel.repaint();
+                                    Object[] combodata = dbHandler.getAllDirForCmb();
+                                    cmbModel = new DefaultComboBoxModel(combodata);
+                                    dirComboBox.setModel(cmbModel);
+                                }
+                            }
+                        });
+                progPanel.add(pb);
+                progPanel.revalidate();
+                progPanel.repaint();
+                updateRecurWorker.execute();
             }
         });
 
         return button;
+    }
+
+    /**
+     * ファイル情報更新
+     *
+     * 参考: https://stackoverflow.com/questions/20260372/swingworker-progressbar
+     *      https://docs.oracle.com/javase/6/docs/api/javax/swing/SwingWorker.html
+     */
+    static class UpdateRecurWorker extends SwingWorker<Integer, Integer>{
+        private String path;
+        private DBHandler dbHandler;
+        private long maxFileNum;
+        public UpdateRecurWorker(DBHandler dbHandler, String path) {
+            this.dbHandler = dbHandler;
+            this.path = path;
+        }
+        @Override
+        protected Integer doInBackground() throws Exception {
+            this.maxFileNum = dbHandler.getFilesCntRecur(this.path);
+            LocalDateTime now = LocalDateTime.now();
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            String formatDateTime = now.format(formatter);
+            int intFormatDataTime = Integer.parseInt(formatDateTime);
+            long cnt = 0;
+            try(Stream<Path> stream = Files.walk(Paths.get(path))){
+                Stream<Path> ps = stream.filter(Files::isRegularFile);
+                Object[] psArray = ps.toArray();
+                for(Object p: psArray){
+                    Path pp = (Path)p;
+                    File f = pp.toFile();
+                    long dbFileUpdatedAt = dbHandler.getFileUpdatedAt(path, pp);
+                    long fileUpdatedAt = f.lastModified();
+                    if(dbFileUpdatedAt < fileUpdatedAt){
+                        System.out.println("更新ファイル");
+                        System.out.println(pp.toString());
+                        TikaHandler tikaHandler = new TikaHandler();
+                        tikaHandler.parse(f);
+
+                        String meta = tikaHandler.getMeta();
+                        String ext = tikaHandler.getExtention();
+                        String content = tikaHandler.getContent();
+                        LuceneHandler luceneHandler = new LuceneHandler();
+                        luceneHandler.update(Paths.get(path), pp, meta, ext, content);
+                        dbHandler.updateFiles(path, (Path)p, intFormatDataTime);
+                    }
+                    // TODO: fileのチェックをした日時でdb更新
+
+
+                    cnt += 1;
+                    int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
+                    setProgress(percentage);
+                }
+            }catch(IOException e) {
+                e.printStackTrace();
+            }
+            return 0;
+        }
     }
 
     /**
