@@ -287,7 +287,7 @@ public class Main {
                         String content = tikaHandler.getContent();
                         LuceneHandler luceneHandler = new LuceneHandler();
                         luceneHandler.update(Paths.get(path), pp, meta, ext, content);
-                        dbHandler.updateFiles(path, (Path)p, intFormatDataTime);
+                        dbHandler.updateFiles(path, (Path)p, fileUpdatedAt, intFormatDataTime);
                     }
                     // TODO: fileのチェックをした日時でdb更新
 

@@ -37,14 +37,14 @@ public class LuceneHandler {
     private CustomEnglishAnalyzer engAnalyzer;
     private CustomJapaneseAnalyzer jpnAnalyzer;
     private CustomJapaneseKanaAnalyzer jpnKanaAnalyzer;
+    private PerFieldAnalyzerWrapper aWrapper;
     public LuceneHandler(){
         indexRoot = "index";
         path = Paths.get(indexRoot);
         engAnalyzer = new CustomEnglishAnalyzer();
         jpnAnalyzer = new CustomJapaneseAnalyzer();
         jpnKanaAnalyzer = new CustomJapaneseKanaAnalyzer();
-    }
-    public int index(Path rootDir , Path p, String meta, String extName, String content) throws IOException, ParseException, NoSuchAlgorithmException {
+
         // 日本語用アナライザ
         Map<String,Analyzer> analyzerPerField = new HashMap<>();
         analyzerPerField.put("jaContent", jpnAnalyzer);
@@ -52,13 +52,13 @@ public class LuceneHandler {
         analyzerPerField.put("jaKanaFileName", jpnKanaAnalyzer);
         analyzerPerField.put("jaKanaContent", jpnKanaAnalyzer);
         // 上記以外は英語アナライザ
-        PerFieldAnalyzerWrapper aWrapper =
-                new PerFieldAnalyzerWrapper(engAnalyzer, analyzerPerField);
-
+        aWrapper = new PerFieldAnalyzerWrapper(engAnalyzer, analyzerPerField);
+    }
+    public int index(Path rootDir , Path p, String meta, String extName, String content) throws IOException, ParseException, NoSuchAlgorithmException {
         MessageDigest md5 = MessageDigest.getInstance("MD5");
         byte[] md5_result = md5.digest(rootDir.toString().getBytes());
         String hashDir = String.format("%020x", new BigInteger(1, md5_result));
-        // 1. create the index
+
         Directory index = FSDirectory.open(Paths.get(indexRoot, hashDir));
 
         IndexWriterConfig config = new IndexWriterConfig(aWrapper);
@@ -70,7 +70,21 @@ public class LuceneHandler {
         return 0;
     }
     public int update(Path rootDir , Path p, String meta, String extName, String content) throws IOException, ParseException, NoSuchAlgorithmException {
-        // TODO:
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        byte[] md5_result = md5.digest(rootDir.toString().getBytes());
+        String hashDir = String.format("%020x", new BigInteger(1, md5_result));
+        Directory index = FSDirectory.open(Paths.get(indexRoot, hashDir));
+        IndexWriterConfig config = new IndexWriterConfig(aWrapper);
+        IndexWriter w = new IndexWriter(index, config);
+
+        // 削除
+        w.deleteDocuments(new Term("filePath", p.toString()));
+        w.commit();
+
+        // 追加
+        long updatedAt = p.toFile().lastModified();
+        addDoc(w, p, meta, extName, content, updatedAt);
+        w.close();
         return 0;
     }
     public HitsDocs search(String queryStr, String searchDir) throws IOException, ParseException, InvalidTokenOffsetsException, NoSuchAlgorithmException {

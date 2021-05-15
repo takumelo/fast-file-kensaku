@@ -285,8 +285,22 @@ public class DBHandler {
         }
     }
 
-    public int updateFiles(String tblName, Path path, int updateTime){
-        return 0;
-        // 特定のディレクトリ列の値の更新
+    public int updateFiles(String dir, Path path, long fileUpdated, int updateTime){
+        String strPath = path.toString();
+        String tmpSql = """
+        UPDATE "%s" SET fileUpdated = ?, updated = ? WHERE dir = ?
+        """;
+        String sql = String.format(tmpSql, dir);
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, fileUpdated);
+            pstmt.setInt(2, updateTime);
+            pstmt.setString(3, path.toString());
+            pstmt.executeUpdate();
+            return 0;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
     }
 }
