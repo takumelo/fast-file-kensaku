@@ -152,22 +152,12 @@ public class LuceneHandler {
         w.addDocument(doc);
     }
     private HitsDocs makeHitsDocs(IndexReader reader, IndexSearcher searcher, Query query, ScoreDoc[] hits) throws IOException, InvalidTokenOffsetsException {
-        //Uses HTML &lt;B&gt;&lt;/B&gt; tag to highlight the searched terms
-        Formatter formatter = new SimpleHTMLFormatter();
-        //It scores text fragments by the number of unique query terms found
-        //Basically the matching score in layman terms
-        QueryScorer scorer = new QueryScorer(query);
-        //used to markup highlighted terms found in the best sections of a text
-        Highlighter highlighter = new Highlighter(formatter, scorer);
-        //It breaks text up into same-size texts but does not split up spans
-        Fragmenter fragmenter = new SimpleSpanFragmenter(scorer, 30);
-        //breaks text up into same-size fragments with no concerns over spotting sentence boundaries.
-        //Fragmenter fragmenter = new SimpleFragmenter(10);
-        //set fragmenter to highlighter
-        highlighter.setTextFragmenter(fragmenter);
-
-        // 4. display results
         // https://northcoder.com/post/lucene-83-basic-search-examples/
+        Formatter formatter = new SimpleHTMLFormatter();
+        QueryScorer scorer = new QueryScorer(query);
+        Highlighter highlighter = new Highlighter(formatter, scorer);
+        Fragmenter fragmenter = new SimpleSpanFragmenter(scorer, 30);
+        highlighter.setTextFragmenter(fragmenter);
 
         HitsDocs hitsDocs = new HitsDocs();
         hitsDocs.setTotalHits(hits.length);
@@ -197,7 +187,6 @@ public class LuceneHandler {
                     resultFrags = highlighter.getBestFragments(stream, text, maxNumFragments);
                 }
             }
-
 
             Path p = Paths.get(d.get("filePath"));
             hitsDocs.add(i, p, resultFrags);

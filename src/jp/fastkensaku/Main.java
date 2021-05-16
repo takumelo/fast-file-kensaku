@@ -405,6 +405,9 @@ public class Main {
         }
         @Override
         protected Integer doInBackground() throws Exception {
+
+            // TODO: DBとluceneの削除
+
             this.maxFileNum = dbHandler.getFilesCntRecur(this.path);
             LocalDateTime now = LocalDateTime.now();
             DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
