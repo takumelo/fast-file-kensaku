@@ -16,7 +16,7 @@ import java.io.StringReader;
 public class CustomAnalyzerTest {
     @Test
     public void testJapaneseAnalyzer() throws Exception {
-        String text = "日本it企業の遅れ";
+        String text = "日本IT企業の勃興";
         CustomJapaneseAnalyzer analyzer = new CustomJapaneseAnalyzer();
         TokenStream tokenStream = analyzer.tokenStream("test", text);
 
@@ -41,7 +41,7 @@ public class CustomAnalyzerTest {
     }
     @Test
     public void testEnglishAnalyzer() throws Exception {
-        String text = "日本it企業の遅れ";
+        String text = "日本IT企業の勃興";
         CustomEnglishAnalyzer analyzer = new CustomEnglishAnalyzer();
         TokenStream tokenStream = analyzer.tokenStream("test", text);
 
