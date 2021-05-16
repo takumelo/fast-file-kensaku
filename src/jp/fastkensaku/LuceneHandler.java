@@ -84,6 +84,21 @@ public class LuceneHandler {
         // 追加
         long updatedAt = p.toFile().lastModified();
         addDoc(w, p, meta, extName, content, updatedAt);
+        w.commit();
+        w.close();
+        return 0;
+    }
+    public int deletes(String dir, String[] outdatedFilePaths) throws NoSuchAlgorithmException, IOException {
+        MessageDigest md5 = MessageDigest.getInstance("MD5");
+        byte[] md5_result = md5.digest(dir.getBytes());
+        String hashDir = String.format("%020x", new BigInteger(1, md5_result));
+        Directory index = FSDirectory.open(Paths.get(indexRoot, hashDir));
+        IndexWriterConfig config = new IndexWriterConfig(aWrapper);
+        IndexWriter w = new IndexWriter(index, config);
+        for(String filePath: outdatedFilePaths){
+            w.deleteDocuments(new Term("filePath", filePath));
+        }
+        w.commit();
         w.close();
         return 0;
     }

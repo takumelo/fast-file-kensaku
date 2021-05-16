@@ -211,7 +211,7 @@ public class Main {
         JProgressBar pb = createProgBar();
         pb.setStringPainted(true);
         String searchDir = String.valueOf(dirComboBox.getSelectedItem());
-        pb.setString("追加準備中: " + searchDir);
+        pb.setString("更新準備中: " + searchDir);
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
                 LuceneHandler luceneHandler = new LuceneHandler();
@@ -222,7 +222,7 @@ public class Main {
                             public  void propertyChange(PropertyChangeEvent evt) {
                                 if ("progress".equals(evt.getPropertyName())) {
                                     // 進んでるとき
-                                    pb.setString("追加中: " + searchDir);
+                                    pb.setString("更新中: " + searchDir);
                                     pb.setValue((Integer)evt.getNewValue());
                                 }else if("state".equals(evt.getPropertyName())
                                         && (SwingWorker.StateValue.DONE.equals(evt.getNewValue()))){
@@ -264,38 +264,55 @@ public class Main {
         protected Integer doInBackground() throws Exception {
             this.maxFileNum = dbHandler.getFilesCntRecur(this.path);
             LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
             String formatDateTime = now.format(formatter);
-            int intFormatDataTime = Integer.parseInt(formatDateTime);
+            long intFormatDataTime = Long.parseLong(formatDateTime);
             long cnt = 0;
             try(Stream<Path> stream = Files.walk(Paths.get(path))){
                 Stream<Path> ps = stream.filter(Files::isRegularFile);
                 Object[] psArray = ps.toArray();
+                LuceneHandler luceneHandler = new LuceneHandler();;
                 for(Object p: psArray){
                     Path pp = (Path)p;
                     File f = pp.toFile();
                     long dbFileUpdatedAt = dbHandler.getFileUpdatedAt(path, pp);
                     long fileUpdatedAt = f.lastModified();
                     if(dbFileUpdatedAt < fileUpdatedAt){
-                        System.out.println("更新ファイル");
-                        System.out.println(pp.toString());
-                        TikaHandler tikaHandler = new TikaHandler();
-                        tikaHandler.parse(f);
+                        if(dbFileUpdatedAt == -1){
+                            System.out.println("新規追加ファイル");
+                            System.out.println(pp.toString());
+                            dbHandler.insertFiles(path, (Path)p, intFormatDataTime);
+                            TikaHandler tikaHandler = new TikaHandler();
+                            tikaHandler.parse(f);
+                            // luceneの更新
+                            String meta = tikaHandler.getMeta();
+                            String ext = tikaHandler.getExtention();
+                            String content = tikaHandler.getContent();
+                            luceneHandler.index(Paths.get(path), pp, meta, ext, content);
+                        }else{
+                            System.out.println("更新ファイル");
+                            System.out.println(pp.toString());
+                            TikaHandler tikaHandler = new TikaHandler();
+                            tikaHandler.parse(f);
 
-                        String meta = tikaHandler.getMeta();
-                        String ext = tikaHandler.getExtention();
-                        String content = tikaHandler.getContent();
-                        LuceneHandler luceneHandler = new LuceneHandler();
-                        luceneHandler.update(Paths.get(path), pp, meta, ext, content);
+                            String meta = tikaHandler.getMeta();
+                            String ext = tikaHandler.getExtention();
+                            String content = tikaHandler.getContent();
+                            luceneHandler.update(Paths.get(path), pp, meta, ext, content);
+                            dbHandler.updateFiles(path, (Path)p, fileUpdatedAt, intFormatDataTime);
+                        }
+                    }else{
                         dbHandler.updateFiles(path, (Path)p, fileUpdatedAt, intFormatDataTime);
                     }
-                    // TODO: fileのチェックをした日時でdb更新
-
-
                     cnt += 1;
                     int percentage = (int)(((double)cnt / (double)maxFileNum) * 100);
                     setProgress(percentage);
                 }
+                // 更新のなかったファイルの削除
+                String[] deletedFile = dbHandler.getOutdatedFiles(path, intFormatDataTime);
+                luceneHandler.deletes(path, deletedFile);
+                dbHandler.deleteOutdatedFiles(path, intFormatDataTime);
+
             }catch(IOException e) {
                 e.printStackTrace();
             }
@@ -390,9 +407,9 @@ public class Main {
         protected Integer doInBackground() throws Exception {
             this.maxFileNum = dbHandler.getFilesCntRecur(this.path);
             LocalDateTime now = LocalDateTime.now();
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMdd");
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmss");
             String formatDateTime = now.format(formatter);
-            int intFormatDataTime = Integer.parseInt(formatDateTime);
+            long intFormatDataTime = Long.parseLong(formatDateTime);
             long cnt = 0;
             try(Stream<Path> stream = Files.walk(Paths.get(path))){
                 Stream<Path> ps = stream.filter(Files::isRegularFile);

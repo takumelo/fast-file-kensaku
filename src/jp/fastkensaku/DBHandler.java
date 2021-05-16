@@ -208,7 +208,7 @@ public class DBHandler {
      * @param updateTime 更新時間
      * @return 成功なら0
      */
-    public int insertFiles(String tblName, Path path, int updateTime){
+    public int insertFiles(String tblName, Path path, long updateTime){
         String tmpSql = """
                 INSERT INTO "%s"('dir', 'updated', 'fileUpdated') VALUES(?, ?, ?)
                 """;
@@ -217,7 +217,7 @@ public class DBHandler {
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setString(1, path.toString());
-            pstmt.setInt(2, updateTime);
+            pstmt.setLong(2, updateTime);
             long fileUpdated = path.toFile().lastModified();
             pstmt.setLong(3, fileUpdated);
             pstmt.executeUpdate();
@@ -285,7 +285,7 @@ public class DBHandler {
         }
     }
 
-    public int updateFiles(String dir, Path path, long fileUpdated, int updateTime){
+    public int updateFiles(String dir, Path path, long fileUpdated, long updateTime){
         String strPath = path.toString();
         String tmpSql = """
         UPDATE "%s" SET fileUpdated = ?, updated = ? WHERE dir = ?
@@ -294,8 +294,42 @@ public class DBHandler {
         try (Connection conn = DriverManager.getConnection(dbPath);
              PreparedStatement pstmt = conn.prepareStatement(sql)) {
             pstmt.setLong(1, fileUpdated);
-            pstmt.setInt(2, updateTime);
+            pstmt.setLong(2, updateTime);
             pstmt.setString(3, path.toString());
+            pstmt.executeUpdate();
+            return 0;
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return -1;
+        }
+    }
+    public String[] getOutdatedFiles(String dir, long updateTime){
+        String tmpSql = """
+        SELECT * FROM "%s" WHERE NOT updated = ?
+        """;
+        String sql = String.format(tmpSql, dir);
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, updateTime);
+            ResultSet rs = pstmt.executeQuery();
+            ArrayList<String> ra = new ArrayList<String>();
+            while (rs.next()) {
+                ra.add(rs.getString("dir"));
+            }
+            return ra.toArray(new String[ra.size()]);
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+            return null;
+        }
+    }
+    public int deleteOutdatedFiles(String dir, long updateTime){
+        String tmpSql = """
+        DELETE FROM "%s" WHERE NOT updated = ?
+        """;
+        String sql = String.format(tmpSql, dir);
+        try (Connection conn = DriverManager.getConnection(dbPath);
+             PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setLong(1, updateTime);
             pstmt.executeUpdate();
             return 0;
         } catch (SQLException e) {
