@@ -173,7 +173,6 @@ public class LuceneHandler {
         hitsDocs.setTotalHits(hits.length);
 
         int maxNumFragments = 3;
-        String[] resultFrags = new String[0];
         Map<String, Analyzer> analyzerPerField = new LinkedHashMap<>();
         analyzerPerField.put("jaContent", jpnAnalyzer);
         analyzerPerField.put("jaFileName", jpnAnalyzer);
@@ -184,6 +183,7 @@ public class LuceneHandler {
 
 
         for(int i=0;i<hits.length;++i) {
+            String[] resultFrags = new String[0];
             int docId = hits[i].doc;
             Document d = searcher.doc(docId);
             Fields f = reader.getTermVectors(docId);
