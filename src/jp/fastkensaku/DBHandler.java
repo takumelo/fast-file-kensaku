@@ -27,7 +27,7 @@ public class DBHandler {
      * なければディレクトリ設定テーブルを作成、DB自体も作成
      */
     public DBHandler(){
-        Path filePath = Paths.get("fastkensaku.db");
+        Path filePath = Paths.get("index.db");
         boolean existsDB = Files.exists(filePath);
         String tmpSql = """
             CREATE TABLE IF NOT EXISTS %s(
