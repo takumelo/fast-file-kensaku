@@ -123,11 +123,12 @@ public class Main {
 
         GridBagConstraints gbc = new GridBagConstraints();
         panel.setLayout(new GridBagLayout());
+
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.weightx = 1.0;
         gbc.weighty = 9.0;
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.anchor = GridBagConstraints.CENTER;
         childTextPanel.add(createTextField());
 
         dirComboBox = new JComboBox();
@@ -163,7 +164,7 @@ public class Main {
      * @return 検索ボタン
      */
     private JButton createSearchButton(){
-        JButton button = new JButton("検索[EnterKey]");
+        JButton button = new JButton("検索");
         button.addActionListener(new ActionListener(){
             public void actionPerformed(ActionEvent e){
 
